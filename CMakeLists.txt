@@ -1,0 +1,98 @@
+cmake_minimum_required(VERSION 2.8.8)
+project(sdr)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+include(InstallHeadersWithDirectory)
+
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Declarative REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5LinguistTools REQUIRED)
+
+find_package(FFTW)
+find_package(FFTWSingle)
+find_package(PortAudio)
+find_package(RTLSDR)
+
+ADD_DEFINITIONS(${Qt5Widgets_DEFINITIONS})
+INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Qt5Declarative_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/sdr)
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/sdr)
+INCLUDE_DIRECTORIES(${PORTAUDIO_INCLUDE_DIRS})
+
+# Set some variables for the configuration file
+IF(FFTW_FOUND)
+  set(SDR_WITH_FFTW ON)
+ELSE(FFTW_FOUND)
+  set(FFTW_LIBRARIES)
+  set(FFTWSingle_LIBRARIES)
+ENDIF(FFTW_FOUND)
+
+IF(PORTAUDIO_FOUND)
+  set(SDR_WITH_PORTAUDIO ON)
+ELSE(PORTAUDIO_FOUND)
+  set(PORTAUDIO_LIBRARIES)
+ENDIF(PORTAUDIO_FOUND)
+
+IF(RTLSDR_FOUND)
+  set(SDR_WITH_RTLSDR ON)
+ELSE(TRLSDR_FOUND)
+  set(RTLSDR_LIBRARIES)
+ENDIF(RTLSDR_FOUND)
+
+
+set(LIBS ${FFTW_LIBRARIES} ${FFTWSingle_LIBRARIES} ${PORTAUDIO_LIBRARIES} ${RTLSDR_LIBRARIES} "pthread")
+
+# Set compiler flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ggdb")
+
+
+LINK_DIRECTORIES(${PROJECT_BINARY_DIR}/sdr)
+LINK_DIRECTORIES(${PROJECT_BINARY_DIR}/sdr/gui)
+
+IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+  SET(SDR_DEBUG ON)
+ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+
+
+# Create config.hh
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/sdr/config.hh.in
+               ${CMAKE_CURRENT_BINARY_DIR}/sdr/config.hh)
+
+# Add core library, and unit tests
+add_subdirectory(sdr)
+add_subdirectory(test)
+add_subdirectory(rx)
+
+# Add DSO application, iff portaudio is present
+IF(SDR_WITH_PORTAUDIO)
+  add_subdirectory(dso)
+ENDIF(SDR_WITH_PORTAUDIO)
+
+# Add examples, if all libraries are present:
+IF(SDR_WITH_PORTAUDIO AND SDR_WITH_FFTW AND SDR_WITH_RTLSDR)
+  add_subdirectory(examples)
+ENDIF(SDR_WITH_PORTAUDIO AND SDR_WITH_FFTW AND SDR_WITH_RTLSDR)
+
+# Source distribution packages:
+set(CPACK_PACKAGE_VERSION_MAJOR "0")
+set(CPACK_PACKAGE_VERSION_MINOR "1")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_SOURCE_GENERATOR "TGZ")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME
+  "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+set(CPACK_SOURCE_IGNORE_FILES
+  "/build/;/doc/;/dist/;/.git/;.dat$;.wav$;~$;.qm$;${CPACK_SOURCE_IGNORE_FILES}")
+
+# Configure NSIS installer for windows
+set(CPACK_NSIS_PACKAGE_NAME "DSO")
+set(CPACK_NSIS_DISPLAY_NAME "DSO")
+set(CPACK_NSIS_CONTACT "hmatuschek@gmail.com")
+set(CPACK_PACKAGE_EXECUTABLES dso "DSO")
+
+include(CPack)
