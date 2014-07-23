@@ -36,9 +36,9 @@ public:
       }
     } else if (Config::Type_cs8 == Traits<Scalar>::scalarId) {
       switch (src_cfg.type()) {
-      case Config::Type_u8:
+      case Config::Type_u8: _cast = _uint8_cint8; break;
       case Config::Type_s8: _cast = _int8_cint8; break;
-      case Config::Type_cu8:
+      case Config::Type_cu8: _cast = _cuint8_cint8; break;
       case Config::Type_cs8: _cast = _identity; break;
       case Config::Type_u16:
       case Config::Type_s16: _cast = _int16_cint8; break;
@@ -118,11 +118,32 @@ protected:
     return N;
   }
 
-  /** int8 -> complex int 8. */
+  /** uint8 -> complex int8. */
+  static size_t _uint8_cint8(const RawBuffer &in, const RawBuffer &out) {
+    size_t N = in.bytesLen();
+    uint8_t *values = reinterpret_cast<uint8_t *>(in.data());
+    for (size_t i=0; i<N; i++) {
+      reinterpret_cast<std::complex<int8_t> *>(out.data())[i] =
+          (int16_t(values[i])-127);
+    }
+    return 2*N;
+  }
+
+  /** int8 -> complex int8. */
   static size_t _int8_cint8(const RawBuffer &in, const RawBuffer &out) {
     size_t N = in.bytesLen();
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<std::complex<int8_t> *>(out.data())[i] = reinterpret_cast<int8_t *>(in.data())[i];
+    }
+    return 2*N;
+  }
+
+  static size_t _cuint8_cint8(const RawBuffer &in, const RawBuffer &out) {
+    size_t N = in.bytesLen()/2;
+    std::complex<uint8_t> *values = reinterpret_cast<std::complex<uint8_t> *>(in.data());
+    for (size_t i=0; i<N; i++) {
+      reinterpret_cast<std::complex<int8_t> *>(out.data())[i] =
+          std::complex<int8_t>(int16_t(values[i].real())-127, int16_t(values[i].imag())-127);
     }
     return 2*N;
   }

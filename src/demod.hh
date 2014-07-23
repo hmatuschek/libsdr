@@ -249,8 +249,9 @@ public:
 protected:
   /** A fast approximative implementation of the std::atan2() on integers. */
   inline SScalar _fast_atan2(SScalar a, SScalar b) {
-    const SScalar pi4 = (1<<(Traits<iScalar>::shift-2));
-    const SScalar pi34 = (3<<(Traits<iScalar>::shift-2));
+    const SScalar pi4 = (1<<(Traits<oScalar>::shift-4));
+    const SScalar pi34 = 3*(1<<(Traits<oScalar>::shift-4));
+    a >>= (9-_shift); b >>= (9-_shift);
     SScalar aabs, angle;
     if ((0 == a) && (0 == b)) { return 0; }
     aabs = (a >= 0) ? a : -a;
@@ -273,16 +274,16 @@ protected:
     // update last value
     last_value = in[0];
     // calc output (prob. overwriting the last value)
-    out[0] = (_fast_atan2(a, b)<<_shift);
+    out[0] = _fast_atan2(a, b);
 
     // Calc remaining values
     for (size_t i=1; i<in.size(); i++) {
-      a = SScalar(in[i].real())*last_value.real()
-          + SScalar(in[i].imag())*last_value.imag();
-      b = SScalar(in[i].imag())*last_value.real()
-          - SScalar(in[i].real())*last_value.imag();
+      a = SScalar(in[i].real())*SScalar(last_value.real())
+          + SScalar(in[i].imag())*SScalar(last_value.imag());
+      b = SScalar(in[i].imag())*SScalar(last_value.real())
+          - SScalar(in[i].real())*SScalar(last_value.imag());
       last_value = in[i];
-      out[i] = (_fast_atan2(a, b)<<_shift);
+      out[i] = _fast_atan2(a, b);
     }
 
     // Store last value
