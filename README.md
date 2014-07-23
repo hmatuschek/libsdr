@@ -5,7 +5,7 @@
 
 ## Build
 
-The only required run-time dependency of `libsdr` is `libpthread`, which is available on all Unix-like OSs like Linux and MacOS X, it is also available for windows if `mingw` is used (http://www.mingw.org) of compilation. Additionally there are some optimal dependencies, which allow for the usage of some additional features of the library. 
+The only required run-time dependency of `libsdr` is `libpthread`, which is available on all Unix-like OSs like Linux and MacOS X. It is also available for windows if `mingw` is used (http://www.mingw.org) of compilation. There are also some optional dependencies, which allow for the usage of some additional features of the library. 
 
 * `Qt5` (http://qt-project.org) - Enables the `libsdr-gui` library implementing some graphical user interface elements like a spectrum view.
 * `fftw3` (http://www.fftw.org) - Also required by the GUI library and allows for FFT-convolution filters.
