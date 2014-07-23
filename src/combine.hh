@@ -5,6 +5,7 @@
 #include "traits.hh"
 #include "node.hh"
 #include "buffer.hh"
+#include "logger.hh"
 #include <limits>
 
 namespace sdr {

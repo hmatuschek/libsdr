@@ -152,7 +152,7 @@ public:
 #ifdef SDR_DEBUG
       LogMessage msg(LOG_WARNING);
       msg << "SSBDemod: Drop buffer.";
-      Logger.get().log(msg);
+      Logger::get().log(msg);
 #endif
     }
   }
