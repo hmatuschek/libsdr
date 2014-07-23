@@ -10,7 +10,9 @@ using namespace sdr::gui;
 /* ****************************************************************************************** *
  *  Implementation of ColorMap
  * ****************************************************************************************** */
-ColorMap::ColorMap() {
+ColorMap::ColorMap(double min, double max)
+  : _min(min), _max(max)
+{
   // pass...
 }
 
@@ -22,7 +24,7 @@ ColorMap::~ColorMap() {
  *  Implementation of GrayScaleColorMap
  * ****************************************************************************************** */
 GrayScaleColorMap::GrayScaleColorMap(double mindB)
-  : ColorMap(), _mindB(mindB)
+  : ColorMap(mindB, 0)
 {
   // pass...
 }
@@ -32,10 +34,8 @@ GrayScaleColorMap::~GrayScaleColorMap() {
 }
 
 QColor
-GrayScaleColorMap::operator ()(const double &value) {
-  if (value > 0) { return Qt::white; }
-  if (value < _mindB) { return Qt::black; }
-  int h = (255*(value-_mindB))/std::abs(_mindB);
+GrayScaleColorMap::map(const double &value) {
+  int h = 255*value;
   return QColor(h,h,h);
 }
 
@@ -71,6 +71,22 @@ WaterFallView::_onSpectrumUpdated() {
   }
 
   // Trigger update
+  this->update();
+}
+
+void
+WaterFallView::mouseReleaseEvent(QMouseEvent *evt) {
+  // If event is accepted -> determine frequency
+  if ((evt->pos().x() < 0) || (evt->pos().x() > this->width())) { return; }
+  double f=0;
+
+  double dfdx = _spectrum->sampleRate()/this->width();
+  f = -_spectrum->sampleRate()/2 + dfdx*evt->pos().x();
+  emit click(f);
+
+  // Forward to default impl:
+  QWidget::mouseReleaseEvent(evt);
+  // redraw
   this->update();
 }
 

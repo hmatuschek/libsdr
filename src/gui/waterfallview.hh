@@ -14,13 +14,28 @@ class ColorMap
 {
 protected:
   /** Hidden constructor. */
-  ColorMap();
+  ColorMap(double min, double max);
 
 public:
   /** Destructor. */
   virtual ~ColorMap();
-  /** Needs to be implemented by all sub-classes. Maps the value (dB) to a color value. */
-  virtual QColor operator()(const double &value) = 0;
+
+  /** Maps a value to a color. */
+  inline QColor operator()(const double &value) {
+    if (value > _max) { return this->map(1); }
+    if (value < _min) { return this->map(0); }
+    return this->map((value-_min)/(_max-_min));
+  }
+
+  /** Maps a value on the interval [0,1] to a color.
+   * Needs to be implemented by all sub-classes. */
+  virtual QColor map(const double &value) = 0;
+
+protected:
+  /** Minimum value. */
+  double _min;
+  /** Maximum value. */
+  double _max;
 };
 
 /** A simple gray-scale color map. */
@@ -34,11 +49,7 @@ public:
   /** Destructor. */
   virtual ~GrayScaleColorMap();
   /** Implements the color mapping. */
-  virtual QColor operator()(const double &value);
-
-protected:
-  /** The minimum value. */
-  double _mindB;
+  virtual QColor map(const double &value);
 };
 
 
@@ -54,7 +65,13 @@ public:
    * @param parent The parent widget. */
   explicit WaterFallView(Spectrum *spectrum, size_t height=100, QWidget *parent = 0);
 
+signals:
+  void click(double f);
+
 protected:
+  /** Handles mouse clicks. */
+  virtual void mouseReleaseEvent(QMouseEvent *evt);
+
   /** Draws the scaled waterfall spectrogram. */
   virtual void paintEvent(QPaintEvent *evt);
 
