@@ -216,10 +216,10 @@ public:
 
     LogMessage msg(LOG_DEBUG);
     msg << "Configured FMDemod node:" << std::endl
-        << " sample-rate " << src_cfg.sampleRate() << std::endl
-        << " in-type / out-type " << src_cfg.type()
+        << " sample-rate: " << src_cfg.sampleRate() << std::endl
+        << " in-type / out-type: " << src_cfg.type()
         << " / " << Config::typeId<oScalar>() << std::endl
-        << " in-place " << (_can_overwrite ? "true" : "false") << std::endl
+        << " in-place: " << (_can_overwrite ? "true" : "false") << std::endl
         << " output scale: 2^" << _shift;
     Logger::get().log(msg);
 
@@ -256,7 +256,6 @@ protected:
     aabs = (a >= 0) ? a : -a;
     if (b >= 0) { angle = pi4 - pi4*(b-aabs) / (b+aabs); }
     else { angle = pi34 - pi4*(b+aabs) / (aabs-b); }
-    angle >>= 2;
     return (a >= 0) ? angle : -angle;
   }
 
@@ -270,6 +269,7 @@ protected:
         + SScalar(in[0].imag())*SScalar(last_value.imag());
     SScalar b = SScalar(in[0].imag())*SScalar(last_value.real())
         - SScalar(in[0].real())*SScalar(last_value.imag());
+
     // update last value
     last_value = in[0];
     // calc output (prob. overwriting the last value)
