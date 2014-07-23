@@ -65,7 +65,8 @@ WaterFallView::_onSpectrumUpdated() {
 
   // Draw new spectrum
   for (size_t i=0; i<_N; i++) {
-    double value = 10*log10(_spectrum->spectrum()[i])-10*log10(_N);
+    int idx = (_spectrum->fftSize()/2+i) % _spectrum->fftSize();
+    double value = 10*log10(_spectrum->spectrum()[idx])-10*log10(_N);
     painter.setPen((*_colorMap)(value));
     painter.drawPoint(i, _M-1);
   }
