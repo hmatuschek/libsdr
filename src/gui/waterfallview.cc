@@ -23,8 +23,8 @@ ColorMap::~ColorMap() {
 /* ****************************************************************************************** *
  *  Implementation of GrayScaleColorMap
  * ****************************************************************************************** */
-GrayScaleColorMap::GrayScaleColorMap(double mindB)
-  : ColorMap(mindB, 0)
+GrayScaleColorMap::GrayScaleColorMap(double min, double max)
+  : ColorMap(min, max)
 {
   // pass...
 }
@@ -49,7 +49,7 @@ WaterFallView::WaterFallView(Spectrum *spectrum, size_t height, QWidget *parent)
   // Fill waterfall pixmap
   _waterfall.fill(Qt::black);
   // Create color map
-  _colorMap = new GrayScaleColorMap();
+  _colorMap = new GrayScaleColorMap(-120, 0);
 
   // Get notified once a new spectrum is available:
   QObject::connect(_spectrum, SIGNAL(spectrumUpdated()), this, SLOT(_onSpectrumUpdated()));

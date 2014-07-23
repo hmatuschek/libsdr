@@ -43,9 +43,9 @@ class GrayScaleColorMap: public ColorMap
 {
 public:
   /** Constructor.
-   * @param mindB Specifices the minimum value in dB of the color-scale. Mapping values [0, mindB]
+   * @param mindB Specifices the minimum value in dB of the color-scale. Mapping values [min, max]
    * to a gray-scale. */
-  GrayScaleColorMap(double mindB=-120);
+  GrayScaleColorMap(double min, double max);
   /** Destructor. */
   virtual ~GrayScaleColorMap();
   /** Implements the color mapping. */
