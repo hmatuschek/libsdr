@@ -2,6 +2,10 @@
 
 **First of all:** I  assembled this library for my one entertainment and to learn something about software defined radio. If you are interested into a full-featured, performant SDR framework, consider using GNU radio (http://gnuradio.org). 
 
+<a href="http://de.tinypic.com?ref=2jb2qfb" target="_blank"><img src="http://i61.tinypic.com/2jb2qfb.png" border="0" alt="SRD-RX"></a>
+
+Although being simple, libsdr is sufficient to write a simple SDR receiver application (http://github.com/hmatuschek/sdr-rx, above). This RX application supports several input sources (i.e. sound card, files, RTL2382 dongles etc.) and modes (i.e. AM, FM, SSB, CW, etc.).
+
 
 ## Build
 
