@@ -109,6 +109,16 @@ RTLSource::stop() {
   pthread_join(_thread, &p);
 }
 
+size_t
+RTLSource::numDevices() {
+  return rtlsdr_get_device_count();
+}
+
+std::string
+RTLSource::deviceName(size_t idx) {
+  return rtlsdr_get_device_name(idx);
+}
+
 
 void *
 RTLSource::__rtl_srd_parallel_main(void *ctx) {

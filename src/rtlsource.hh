@@ -55,6 +55,8 @@ public:
   /** Stops the reception. */
   void stop();
 
+  static size_t numDevices();
+  static std::string deviceName(size_t idx);
 
 protected:
   /** Prallel routine to receive some data from the device. */

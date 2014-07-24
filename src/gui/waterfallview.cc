@@ -41,7 +41,37 @@ GrayScaleColorMap::map(const double &value) {
 
 
 /* ****************************************************************************************** *
- *  Implementation of GrayScaleColorMap
+ *  Implementation of LinearColorMap
+ * ****************************************************************************************** */
+LinearColorMap::LinearColorMap(const QVector<QColor> &colors, double min, double max)
+  : ColorMap(min, max), _colors(colors)
+{
+  // pass...
+}
+
+LinearColorMap::~LinearColorMap() {
+  // pass...
+}
+
+QColor
+LinearColorMap::map(const double &value) {
+  // Calc indices
+  double upper = ceil(value*(_colors.size()-1));
+  double lower = floor(value*(_colors.size()-1));
+  int idx = int(lower);
+  if (lower == upper) { return _colors[idx]; }
+  double dv = upper-(value*(_colors.size()-1));
+  double dr = dv * (_colors[idx].red()   - _colors[idx+1].red());
+  double dg = dv * (_colors[idx].green() - _colors[idx+1].green());
+  double db = dv * (_colors[idx].blue()  - _colors[idx+1].blue());
+  return QColor(int(_colors[idx+1].red()+dr),
+                int(_colors[idx+1].green()+dg),
+                int(_colors[idx+1].blue()+db));
+}
+
+
+/* ****************************************************************************************** *
+ *  Implementation of WaterFallView
  * ****************************************************************************************** */
 WaterFallView::WaterFallView(Spectrum *spectrum, size_t height, QWidget *parent)
   : QWidget(parent), _spectrum(spectrum), _N(_spectrum->fftSize()), _M(height), _waterfall(_N,_M)
@@ -49,7 +79,10 @@ WaterFallView::WaterFallView(Spectrum *spectrum, size_t height, QWidget *parent)
   // Fill waterfall pixmap
   _waterfall.fill(Qt::black);
   // Create color map
-  _colorMap = new GrayScaleColorMap(-120, 0);
+  //_colorMap = new GrayScaleColorMap(-120, 0);
+  QVector<QColor> colors; colors.reserve(4);
+  colors << Qt::black << Qt::red << Qt::yellow << Qt::white;
+  _colorMap = new LinearColorMap(colors, -60, 0);
 
   // Get notified once a new spectrum is available:
   QObject::connect(_spectrum, SIGNAL(spectrumUpdated()), this, SLOT(_onSpectrumUpdated()));

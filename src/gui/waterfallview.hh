@@ -52,6 +52,18 @@ public:
   virtual QColor map(const double &value);
 };
 
+/** A linear interpolating color map. */
+class LinearColorMap: public ColorMap {
+public:
+  LinearColorMap(const QVector<QColor> &colors, double min, double max);
+  /** Destructor. */
+  virtual ~LinearColorMap();
+  virtual QColor map(const double &value);
+
+protected:
+  QVector<QColor> _colors;
+};
+
 
 /** A simple waterfall display of the spectrogram. */
 class WaterFallView : public QWidget
