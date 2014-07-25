@@ -21,12 +21,12 @@ public:
     case Config::Type_s8:
     case Config::Type_cu8:
     case Config::Type_cs8:
-      _scale = 127; break;
+      _scale = 1<<6; break;
     case Config::Type_u16:
     case Config::Type_s16:
     case Config::Type_cu16:
     case Config::Type_cs16:
-      _scale = 32000; break;
+      _scale = 1<<14; break;
     default:
       _scale = 1; break;
     }

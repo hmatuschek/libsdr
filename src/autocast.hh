@@ -58,7 +58,7 @@ public:
       case Config::Type_s8: _cast = _int8_cint16; break;
       case Config::Type_cu8: _cast = _cuint8_cint16; break;
       case Config::Type_cs8: _cast = _cint8_cint16; break;
-      case Config::Type_u16:
+      case Config::Type_u16: _cast = _uint16_cint16; break;
       case Config::Type_s16: _cast = _int16_cint16; break;
       case Config::Type_cu16:
       case Config::Type_cs16: _cast = _identity; break;
@@ -80,6 +80,7 @@ public:
     msg << "Configure AutoCast node:" << std::endl
         << " input type: " << src_cfg.type() << std::endl
         << " output type: " << Traits<Scalar>::scalarId;
+    Logger::get().log(msg);
 
     // Propergate config
     this->setConfig(Config(Config::typeId<Scalar>(), src_cfg.sampleRate(), src_cfg.bufferSize(), 1));
@@ -219,6 +220,17 @@ protected:
       reinterpret_cast<std::complex<int16_t> *>(out.data())[i] =
           std::complex<int16_t>(int16_t(values[i].real())<<8,
                                 int16_t(values[i].imag())<<8);
+    }
+    return 4*N;
+  }
+
+  /** uint16 -> complex int16. */
+  static size_t _uint16_cint16(const RawBuffer &in, const RawBuffer &out) {
+    size_t N = in.bytesLen()/2;
+    int16_t *values = reinterpret_cast<int16_t *>(in.data());
+    for (size_t i=0; i<N; i++) {
+      reinterpret_cast<std::complex<int16_t> *>(out.data())[i]
+          = std::complex<int16_t>(int32_t(values[i])-(2<<15));
     }
     return 4*N;
   }

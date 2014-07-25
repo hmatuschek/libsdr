@@ -201,7 +201,7 @@ public:
     // Check if buffer type matches template
     if (Config::typeId< std::complex<iScalar> >() != src_cfg.type()) {
       ConfigError err;
-      err << "Can not configure USBDemod: Invalid type " << src_cfg.type()
+      err << "Can not configure FMDemod: Invalid type " << src_cfg.type()
           << ", expected " << Config::typeId< std::complex<iScalar> >();
       throw err;
     }
