@@ -37,7 +37,7 @@ public:
       err << "FracSubSampleBase: Can not sub-sample with fraction smaller one: " << frac;
       throw err;
     }
-    _period = (frac*(1<<10));
+    _period = (frac*(1<<16));
   }
 
   /** Destructor. */
@@ -52,12 +52,12 @@ public:
       err << "FracSubSampleBase: Can not sub-sample with fraction smaller one: " << frac;
       throw err;
     }
-    _period = (frac*(1<<10)); _sample_count=0; _avg = 0;
+    _period = (frac*(1<<16)); _sample_count=0; _avg = 0;
   }
 
   /** Returns the effective sub-sample fraction. */
   inline double frac() const {
-    return double(_period)/(1<<10);
+    return double(_period)/(1<<16);
   }
 
   /** Reset sample counter. */
@@ -70,9 +70,10 @@ public:
   inline Buffer<Scalar> subsample(const Buffer<Scalar> &in, const Buffer<Scalar> &out) {
     size_t oidx = 0;
     for (size_t i=0; i<in.size(); i++) {
-      _avg += in[i]; _sample_count += (1<<10);
+      _avg += in[i]; _sample_count += (1<<16);
       if (_sample_count >= _period) {
-        out[oidx++] = _avg/SScalar(_sample_count/(1<<10)); _sample_count=0;
+        out[oidx] = _avg/SScalar(_sample_count/(1<<16));
+        _sample_count=0; _avg = 0; oidx++;
       }
     }
     return out.head(oidx);
@@ -81,7 +82,7 @@ public:
 protected:
   /** The average. */
   SScalar _avg;
-  /** The number of samples collected times (1<<10). */
+  /** The number of samples collected times (1<<16). */
   size_t _sample_count;
   /** The sub-sample period. */
   size_t _period;
@@ -94,9 +95,9 @@ class PLL
 {
 public:
   PLL(double F0, double dF, double bw)
-    : _F(F0), _dF(dF), _P(0)
+    : _F(F0), _dF(dF), _P(0), _dP(0)
   {
-    double damp = sqrt(2)/2;
+    double damp = std::sqrt(2.0)/2;
     double tmp = (1.+2*damp*bw + bw*bw);
     _alpha = 4*damp*bw/tmp;
     _beta  = 4*bw*bw/tmp;
@@ -116,33 +117,43 @@ public:
 
   inline uint8_t updatePLL(const std::complex<Scalar> &in)
   {
-    float phi = std::atan2(float(in.imag()), float(in.real())) - _P + M_PI;
-    _F += _beta*phi;
-    _P += _F + _alpha*phi;
+    float phi = _mod2PI(std::atan2(in.imag(), in.real()) - _P);
+    _F = _F + _beta*phi;
+    _dP = _mod2PI(_dP + _alpha*phi);
+    _P = _P + _F + _alpha*phi;
     // Limit phase and frequency
-    _mod2PI(_P);
+    _phaseNorm(_P); _phaseNorm(_dP);
     _F = std::min(_Fmax, std::max(_Fmin, _F));
-    return ((_P/(2*M_PI))*(1<<8));
+    return (_dP/(2*M_PI))*(1<<7);
   }
 
   inline float phase() const { return _P; }
+  inline float phaseShift() const { return _dP; }
   inline float frequency() const { return _F; }
-  void setFrequency(double F) {
+
+  void setFrequency(float F) {
     _F = F; _Fmin = _F-_dF; _Fmax = _F+_dF;
   }
-  void setFreqWidth(double dF) {
+
+  void setFreqWidth(float dF) {
     _dF = dF;
     _Fmin = _F-_dF; _Fmax = _F+_dF;
   }
 
 protected:
-  static inline void _mod2PI(float &arg) {
+  static inline void _phaseNorm(float &arg) {
     while (arg > (2*M_PI)) { arg -= 2*M_PI; }
     while (arg < (-2*M_PI)) { arg += 2*M_PI; }
   }
 
+  static inline float _mod2PI(const float &arg) {
+    if (arg > M_PI) { return arg - 2*M_PI;}
+    if (arg < -M_PI) { return arg + 2*M_PI; }
+    return arg;
+  }
+
 protected:
-  float _F, _dF, _P;
+  float _F, _dF, _P, _dP;
   float _Fmin, _Fmax;
   float _alpha, _beta;
 };
@@ -155,8 +166,8 @@ class BPSK31: public Sink< std::complex<Scalar> >, public Source, public PLL<Sca
   typedef typename Traits<Scalar>::SScalar SScalar;
 
 public:
-  BPSK31(double F0, double dF=200.0)
-    : Sink< std::complex<Scalar> >(), Source(), PLL<Scalar>(0, 0, 2e-1),
+  BPSK31(double F0, double dF=200.0, double bw=3e-1)
+    : Sink< std::complex<Scalar> >(), Source(), PLL<Scalar>(2*M_PI*F0/8000., 2*M_PI*dF/8000, bw),
       _subsampler(1), _subsamplebuffer(), _F0(F0), _dF(dF)
   {
     // pass...
@@ -167,10 +178,11 @@ public:
     // pass...
   }
 
-  /** Configures the FM demodulator. */
+  /** Configures the BPSK demodulator. */
   virtual void config(const Config &src_cfg) {
     // Requires type, buffer size & sample rate
     if (!src_cfg.hasType() || !src_cfg.hasSampleRate() || !src_cfg.hasBufferSize()) { return; }
+
     // Check if buffer type matches template
     if (Config::typeId< std::complex<Scalar> >() != src_cfg.type()) {
       ConfigError err;
@@ -179,9 +191,17 @@ public:
       throw err;
     }
 
+    // Check input sample-rate
+    if (src_cfg.sampleRate() < 8000) {
+      ConfigError err;
+      err << "Can not configure BPSK31 node: Input sample rate must be at least 8000Hz! "
+          << "Sample rate = " << src_cfg.sampleRate();
+      throw err;
+    }
+
     // Update frequencies of PLL
-    this->setFrequency(2*M_PI*_F0/src_cfg.sampleRate());
-    this->setFreqWidth(2*M_PI*_dF/src_cfg.sampleRate());
+    this->setFrequency(2*M_PI*_F0/8000);
+    this->setFreqWidth(2*M_PI*_dF/8000);
 
     // Configure sub-sampler to 8kHz sample rate:
     _subsampler.setFrac(src_cfg.sampleRate()/8000);
@@ -190,18 +210,11 @@ public:
     // Unreference buffer if non-empty
     if (! _buffer.isEmpty()) { _buffer.unref(); }
     // Allocate buffer
-    _buffer = Buffer<uint8_t>(256);
-    _hist   = Buffer<uint8_t>(256);
+    _buffer = Buffer<float>(256);
+    _hist   = Buffer<float>(256);
     // Clear history
     for (size_t i=0; i<_hist.size(); i++) { _hist[i] = 0; }
 
-    // Check input sample-rate
-    if (src_cfg.sampleRate() < 8000) {
-      ConfigError err;
-      err << "Can not configure BPSK31 node: Input sample rate must be at least 8000Hz! "
-          << "Sample rate = " << src_cfg.sampleRate();
-      throw err;
-    }
     // bit counter...
     _dec_count = 0;
 
@@ -215,7 +228,7 @@ public:
     Logger::get().log(msg);
 
     // Propergate config
-    this->setConfig(Config(Config::typeId<uint8_t>(), 8000.0, 256, 1));
+    this->setConfig(Config(Config::typeId<float>(), 8000.0, 256, 1));
   }
 
 
@@ -223,19 +236,23 @@ public:
   virtual void process(const Buffer<std::complex<Scalar> > &buffer, bool allow_overwrite)
   {
     // First, sub-sample to 8000Hz
-    Buffer< std::complex<Scalar> > samples;
-    if (allow_overwrite) { samples = _subsampler.subsample(buffer, buffer); }
-    else { samples = _subsampler.subsample(buffer, _subsamplebuffer); }
+    Buffer< std::complex<Scalar> > samples =
+        _subsampler.subsample(buffer, _subsamplebuffer);
 
-    uint8_t phase = 0;
+    float phase = 0;
     for (size_t i=1; i<samples.size(); i++) {
       // Update PLL
-      phase = this->updatePLL(buffer[i]);
+      this->updatePLL(samples[i]); phase = this->phaseShift();
       // Obtain phase-difference with respect to last bit
       // and store current phase
-      _buffer[_dec_count] = std::abs(int16_t(phase) - int16_t(_hist[_dec_count]));
+      _buffer[_dec_count] = phase - _hist[_dec_count];
       _hist[_dec_count] = phase; _dec_count++;
       if (256 == _dec_count) {
+        std::cerr << "PLL Freq: " << 8000.*this->frequency()/(2*M_PI) << std::endl;
+        for (size_t j=0; j<256; j++) {
+          std::cout << _buffer[j] << "\t";
+        }
+        std::cout << std::endl;
         // propergate resulting 256 bits
         this->send(_buffer.head(256)); _dec_count = 0;
       }
@@ -252,8 +269,8 @@ protected:
   size_t _dec_count;
 
   /** The output buffer, unused if demodulation is performed in-place. */
-  Buffer<uint8_t> _buffer;
-  Buffer<uint8_t> _hist;
+  Buffer<float> _buffer;
+  Buffer<float> _hist;
 };
 
 
@@ -284,13 +301,12 @@ int main(int argc, char *argv[]) {
   Queue &queue = Queue::get();
 
   WavSource src(argv[1]);
-  //SigGen<int16_t> src(22050., 1024);
-  //src.addSine(2144);
   AutoCast< std::complex<int16_t> > cast;
-  IQBaseBand<int16_t> baseband(0, 2144., 400.0, 15, 1);
-  BPSK31<int16_t> demod(2144.0);
+  IQBaseBand<int16_t> baseband(0, 2144., 200.0, 63, 1);
+  baseband.setCenterFrequency(1244.0);
+  BPSK31<int16_t> demod(1000.0, 100.0, 4e-1);
   PortSink sink;
-  DebugDump<uint8_t> dump;
+  DebugDump<float> dump;
 
   src.connect(&cast, true);
   cast.connect(&baseband, true);
@@ -300,7 +316,7 @@ int main(int argc, char *argv[]) {
   demod.connect(&dump, true);
 
   queue.addIdle(&src, &WavSource::next);
-  //queue.addIdle(&src, &SigGen<int16_t>::next);
+  //queue.addIdle(&src, &IQSigGen<double>::next);
 
   queue.start();
   app.exec();

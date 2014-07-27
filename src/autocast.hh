@@ -227,7 +227,7 @@ protected:
   /** uint16 -> complex int16. */
   static size_t _uint16_cint16(const RawBuffer &in, const RawBuffer &out) {
     size_t N = in.bytesLen()/2;
-    int16_t *values = reinterpret_cast<int16_t *>(in.data());
+    uint16_t *values = reinterpret_cast<uint16_t *>(in.data());
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<std::complex<int16_t> *>(out.data())[i]
           = std::complex<int16_t>(int32_t(values[i])-(2<<15));
