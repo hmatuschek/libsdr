@@ -211,7 +211,7 @@ public:
     if (! _buffer.isEmpty()) { _buffer.unref(); }
     // Allocate buffer
     _buffer = Buffer<float>(256);
-    _hist   = Buffer<float>(256);
+    _hist   = Buffer<float>(512);
     // Clear history
     for (size_t i=0; i<_hist.size(); i++) { _hist[i] = 0; }
 
@@ -245,8 +245,10 @@ public:
       this->updatePLL(samples[i]); phase = this->phaseShift();
       // Obtain phase-difference with respect to last bit
       // and store current phase
-      _buffer[_dec_count] = phase - _hist[_dec_count];
-      _hist[_dec_count] = phase; _dec_count++;
+      _buffer[_dec_count] = phase; // - _hist[_dec_count];
+      _hist[_dec_count] = phase;
+      _hist[256+_dec_count] = phase;
+      _dec_count++;
       if (256 == _dec_count) {
         std::cerr << "PLL Freq: " << 8000.*this->frequency()/(2*M_PI) << std::endl;
         for (size_t j=0; j<256; j++) {
@@ -302,9 +304,9 @@ int main(int argc, char *argv[]) {
 
   WavSource src(argv[1]);
   AutoCast< std::complex<int16_t> > cast;
-  IQBaseBand<int16_t> baseband(0, 2144., 200.0, 63, 1);
-  baseband.setCenterFrequency(1244.0);
-  BPSK31<int16_t> demod(1000.0, 100.0, 4e-1);
+  IQBaseBand<int16_t> baseband(0, 1016., 200.0, 63, 1);
+  //baseband.setCenterFrequency(116.0);
+  BPSK31<int16_t> demod(1000.0, 200.0, 5e-1);
   PortSink sink;
   DebugDump<float> dump;
 

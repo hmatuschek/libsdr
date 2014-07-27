@@ -184,7 +184,7 @@ protected:
     uint8_t *values = reinterpret_cast<uint8_t *>(in.data());
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<std::complex<int16_t> *>(out.data())[i]
-          = std::complex<int16_t>((int16_t(values[i])-127)<<8);
+          = std::complex<int16_t>((int16_t(values[i])-(1<<6))<<8);
     }
     return 4*N;
   }
