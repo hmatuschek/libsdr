@@ -8,6 +8,7 @@
 
 namespace sdr {
 
+/** A simple BPSK31 "demodulator". */
 template <class Scalar>
 class BPSK31: public Sink< std::complex<Scalar> >, public Source
 {

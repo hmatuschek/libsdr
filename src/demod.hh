@@ -6,6 +6,7 @@
 #include "config.hh"
 #include "combine.hh"
 #include "logger.hh"
+#include "math.hh"
 
 
 namespace sdr {
@@ -247,43 +248,33 @@ public:
   }
 
 protected:
-  /** A fast approximative implementation of the std::atan2() on integers. */
-  inline SScalar _fast_atan2(SScalar a, SScalar b) {
-    const SScalar pi4 = (1<<(Traits<oScalar>::shift-4));
-    const SScalar pi34 = 3*(1<<(Traits<oScalar>::shift-4));
-    a >>= (9-_shift); b >>= (9-_shift);
-    SScalar aabs, angle;
-    if ((0 == a) && (0 == b)) { return 0; }
-    aabs = (a >= 0) ? a : -a;
-    if (b >= 0) { angle = pi4 - pi4*(b-aabs) / (b+aabs); }
-    else { angle = pi34 - pi4*(b+aabs) / (aabs-b); }
-    return (a >= 0) ? angle : -angle;
-  }
-
   /** The actual demodulation. */
   void _process(const Buffer< std::complex<iScalar> > &in, const Buffer<oScalar> &out)
   {
     // The last input value
     std::complex<iScalar> last_value = _last_value;
     // calc first value
-    SScalar a = SScalar(in[0].real())*SScalar(last_value.real())
-        + SScalar(in[0].imag())*SScalar(last_value.imag());
-    SScalar b = SScalar(in[0].imag())*SScalar(last_value.real())
-        - SScalar(in[0].real())*SScalar(last_value.imag());
-
+    SScalar a = (SScalar(in[0].real())*SScalar(last_value.real()))/2
+        + (SScalar(in[0].imag())*SScalar(last_value.imag()))/2;
+    SScalar b = (SScalar(in[0].imag())*SScalar(last_value.real()))/2
+        - (SScalar(in[0].real())*SScalar(last_value.imag()))/2;
+    a >>= Traits<iScalar>::shift; b >>= Traits<iScalar>::shift;
     // update last value
     last_value = in[0];
     // calc output (prob. overwriting the last value)
-    out[0] = _fast_atan2(a, b);
+    out[0] = fast_atan2<iScalar, oScalar>(a, b);
+    //out[0] = (1<<12)*(std::atan2(float(a),float(b))/M_PI);
 
     // Calc remaining values
     for (size_t i=1; i<in.size(); i++) {
-      a = SScalar(in[i].real())*SScalar(last_value.real())
-          + SScalar(in[i].imag())*SScalar(last_value.imag());
-      b = SScalar(in[i].imag())*SScalar(last_value.real())
-          - SScalar(in[i].real())*SScalar(last_value.imag());
+      a = (SScalar(in[i].real())*SScalar(last_value.real()))/2
+          + (SScalar(in[i].imag())*SScalar(last_value.imag()))/2;
+      b = (SScalar(in[i].imag())*SScalar(last_value.real()))/2
+          - (SScalar(in[i].real())*SScalar(last_value.imag()))/2;
+      a >>= Traits<iScalar>::shift; b >>= Traits<iScalar>::shift;
       last_value = in[i];
-      out[i] = _fast_atan2(a, b);
+      out[i] = fast_atan2<iScalar,oScalar>(a, b);
+      //out[i] = (1<<12)*(std::atan2(float(a),float(b))/M_PI);
     }
 
     // Store last value

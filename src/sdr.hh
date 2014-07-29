@@ -6,6 +6,7 @@
 
 #include "config.hh"
 #include "operators.hh"
+#include "math.hh"
 #include "traits.hh"
 #include "exception.hh"
 #include "buffer.hh"

@@ -5,6 +5,7 @@
 #include "buffer.hh"
 #include "traits.hh"
 #include "interpolate.hh"
+#include "logger.hh"
 
 
 namespace sdr {

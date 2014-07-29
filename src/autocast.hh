@@ -184,7 +184,7 @@ protected:
     uint8_t *values = reinterpret_cast<uint8_t *>(in.data());
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<std::complex<int16_t> *>(out.data())[i]
-          = std::complex<int16_t>((int16_t(values[i])-(1<<6))<<8);
+          = std::complex<int16_t>((int16_t(values[i])-127)<<8);
     }
     return 4*N;
   }
@@ -195,7 +195,7 @@ protected:
     int8_t *values = reinterpret_cast<int8_t *>(in.data());
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<std::complex<int16_t> *>(out.data())[i]
-          = std::complex<int16_t>(int16_t(values[i])<<8);
+          = std::complex<int16_t>(int16_t(values[i])*(1<<8));
     }
     return 4*N;
   }
@@ -206,8 +206,8 @@ protected:
     std::complex<uint8_t> *values = reinterpret_cast<std::complex<uint8_t> *>(in.data());
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<std::complex<int16_t> *>(out.data())[i] =
-          std::complex<int16_t>((int16_t(values[i].real())-127)<<8,
-                                (int16_t(values[i].imag())-127)<<8);
+          std::complex<int16_t>((int16_t(values[i].real())-127)*(1<<8),
+                                (int16_t(values[i].imag())-127)*(1<<8));
     }
     return 4*N;
   }
@@ -218,8 +218,8 @@ protected:
     std::complex<int8_t> *values = reinterpret_cast<std::complex<int8_t> *>(in.data());
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<std::complex<int16_t> *>(out.data())[i] =
-          std::complex<int16_t>(int16_t(values[i].real())<<8,
-                                int16_t(values[i].imag())<<8);
+          std::complex<int16_t>(int16_t(values[i].real())*(1<<8),
+                                int16_t(values[i].imag())*(1<<8));
     }
     return 4*N;
   }
@@ -230,7 +230,7 @@ protected:
     uint16_t *values = reinterpret_cast<uint16_t *>(in.data());
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<std::complex<int16_t> *>(out.data())[i]
-          = std::complex<int16_t>(int32_t(values[i])-(2<<15));
+          = std::complex<int16_t>(int32_t(values[i])-(1<<15));
     }
     return 4*N;
   }

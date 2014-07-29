@@ -137,9 +137,9 @@ WavSource::open(const std::string &filename)
   // Configure source
   _frame_count = chunk_size/(2*n_chanels);
   if ((1 == n_chanels) && (8 == bits_per_sample)) { _type = Config::Type_u8; }
-  else if ((1==n_chanels) && (16 == bits_per_sample)) { _type = Config::Type_u16; }
+  else if ((1==n_chanels) && (16 == bits_per_sample)) { _type = Config::Type_s16; }
   else if ((2==n_chanels) && ( 8 == bits_per_sample)) { _type = Config::Type_cu8; }
-  else if ((2==n_chanels) && (16 == bits_per_sample)) { _type = Config::Type_cu16; }
+  else if ((2==n_chanels) && (16 == bits_per_sample)) { _type = Config::Type_cs16; }
   else {
     ConfigError err; err << "Can not configure WavSource: Unsupported PCM type."; throw err;
   }
@@ -166,17 +166,17 @@ WavSource::open(const std::string &filename)
     _buffer = Buffer<uint8_t>(_buffer_size);
     this->setConfig(Config(Config::Type_u8, _sample_rate, _buffer_size, 1));
     break;
-  case Config::Type_u16:
-    _buffer = Buffer<uint16_t>(_buffer_size);
-    this->setConfig(Config(Config::Type_u16, _sample_rate, _buffer_size, 1));
+  case Config::Type_s16:
+    _buffer = Buffer<int16_t>(_buffer_size);
+    this->setConfig(Config(Config::Type_s16, _sample_rate, _buffer_size, 1));
     break;
   case Config::Type_cu8:
     _buffer = Buffer< std::complex<uint8_t> >(_buffer_size);
     this->setConfig(Config(Config::Type_cu8, _sample_rate, _buffer_size, 1));
     break;
-  case Config::Type_cu16:
-    _buffer = Buffer< std::complex<uint16_t> >(_buffer_size);
-    this->setConfig(Config(Config::Type_cu16, _sample_rate, _buffer_size, 1));
+  case Config::Type_cs16:
+    _buffer = Buffer< std::complex<int16_t> >(_buffer_size);
+    this->setConfig(Config(Config::Type_cs16, _sample_rate, _buffer_size, 1));
     break;
   default: {
     ConfigError err; err << "Can not configure WavSource: Unsupported PCM type."; throw err;
@@ -192,7 +192,7 @@ WavSource::close() {
 
 bool
 WavSource::isReal() const {
-  return (Config::Type_u8 == _type) || (Config::Type_u16 == _type);
+  return (Config::Type_u8 == _type) || (Config::Type_s16 == _type);
 }
 
 void
@@ -216,20 +216,20 @@ WavSource::next()
     _frames_left -= n_frames;
     this->send(RawBuffer(_buffer, 0, n_frames*sizeof(uint8_t)), true);
     break;
-  case Config::Type_u16:
-    _file.read(_buffer.ptr(), n_frames*sizeof(uint16_t));
+  case Config::Type_s16:
+    _file.read(_buffer.ptr(), n_frames*sizeof(int16_t));
     _frames_left -= n_frames;
-    this->send(RawBuffer(_buffer, 0, n_frames*sizeof(uint16_t)), true);
+    this->send(RawBuffer(_buffer, 0, n_frames*sizeof(int16_t)), true);
     break;
   case Config::Type_cu8:
     _file.read(_buffer.ptr(), 2*n_frames*sizeof(uint8_t));
     _frames_left -= n_frames;
     this->send(RawBuffer(_buffer, 0, 2*n_frames*sizeof(uint8_t)), true);
     break;
-  case Config::Type_cu16:
-    _file.read(_buffer.ptr(), 2*n_frames*sizeof(uint16_t));
+  case Config::Type_cs16:
+    _file.read(_buffer.ptr(), 2*n_frames*sizeof(int16_t));
     _frames_left -= n_frames;
-    this->send(RawBuffer(_buffer, 0, 2*n_frames*sizeof(uint16_t)), true);
+    this->send(RawBuffer(_buffer, 0, 2*n_frames*sizeof(int16_t)), true);
     break;
   default:
     break;
