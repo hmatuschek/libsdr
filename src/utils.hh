@@ -393,7 +393,7 @@ public:
   virtual void process(const Buffer<std::complex<Scalar> > &buffer, bool allow_overwrite) {
     // Shift freq:
     for (size_t i=0; i<buffer.size(); i++) {
-      _buffer[i] = _scale*_factor*buffer[i]; _factor *= _delta;
+      _buffer[i] = (double(_scale)*_factor)*buffer[i]; _factor *= _delta;
     }
     // Send buffer
     this->send(_buffer);
@@ -407,11 +407,11 @@ protected:
   /** The optional scale. */
   Scalar _scale;
   /** The current exponental factor, gets updated for every sample. */
-  std::complex<Scalar> _factor;
+  std::complex<double> _factor;
   /** The current sample rate. */
   double _sample_rate;
   /** \f$\exp(i\omega t)\f$. */
-  std::complex<Scalar> _delta;
+  std::complex<double> _delta;
 };
 
 
