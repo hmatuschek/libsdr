@@ -230,7 +230,7 @@ public:
   }
 
 
-  virtual void process(const Buffer<sdr::iScalar> &buffer, bool allow_overwrite) {
+  virtual void process(const Buffer<iScalar> &buffer, bool allow_overwrite) {
     size_t i=0, o=0;
     while (i<buffer.size()) {
       // Fill delay line
