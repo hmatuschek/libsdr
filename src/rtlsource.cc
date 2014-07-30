@@ -4,30 +4,30 @@
 using namespace sdr;
 
 
-RTLSource::RTLSource(double frequency, double sample_rate)
+RTLSource::RTLSource(double frequency, double sample_rate, size_t device_idx)
   : Source(), _frequency(frequency), _sample_rate(sample_rate), _agc_enabled(true),
     _buffer_size(131072), _device(0)
 {
   {
     LogMessage msg(LOG_DEBUG);
     msg << "Found " << rtlsdr_get_device_count()
-        << " RTL2832 devices, using No. 0.";
+        << " RTL2832 devices, using No. " << device_idx << ".";
     Logger::get().log(msg);
   }
 
   // Open device
   if (0 < rtlsdr_get_device_count()) {
-    /// @bug Allow to select the device index.
-    if (rtlsdr_open(&_device, 0)) {
-      ConfigError err; err << "Can not open RTL2832 USB device " << 0; throw err;
+    if (rtlsdr_open(&_device, device_idx)) {
+      ConfigError err; err << "Can not open RTL2832 USB device " << device_idx; throw err;
     }
   } else {
-    ConfigError err; err << "Can not open RTL2832 USB device: No device found."; throw err;
+    ConfigError err; err << "Can not open RTL2832 USB device: No with index "
+                         << device_idx << " found."; throw err;
   }
 
   {
     LogMessage msg(LOG_DEBUG);
-    msg << "Using device: " << rtlsdr_get_device_name(0);
+    msg << "Using device: " << rtlsdr_get_device_name(device_idx);
     Logger::get().log(msg);
   }
 

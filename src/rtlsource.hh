@@ -19,7 +19,7 @@ public:
    *
    * @param frequency Specifies the tuner frequency.
    * @param sample_rate Specifies the sample rate.  */
-  RTLSource(double frequency, double sample_rate=1000000);
+  RTLSource(double frequency, double sample_rate=1e6, size_t device_idx=0);
 
   /** Destructor. */
   virtual ~RTLSource();
