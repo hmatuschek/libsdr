@@ -7,6 +7,7 @@ using namespace sdr;
 Varicode::Varicode()
   : Sink<uint8_t>(), Source()
 {
+  // Fill code table
   _code_table[1023] = '!';  _code_table[87]   = '.';  _code_table[895]  = '\'';
   _code_table[367]  = '*';  _code_table[495]  = '\\'; _code_table[687]  = '?';
   _code_table[475]  = '$';  _code_table[701]  = '@';  _code_table[365]  = '_';
@@ -17,6 +18,8 @@ Varicode::Varicode()
   _code_table[693]  = '}';  _code_table[503]  = ')';  _code_table[1749] = '%';
   _code_table[471]  = '>';  _code_table[991]  = '+';  _code_table[251]  = '[';
   _code_table[85]   = '=';  _code_table[943]  = '/';  _code_table[29]   = '\n';
+  _code_table[31]   = '\r'; _code_table[747]  = '\n';
+  //                        ^- Encode EOT as LN
   _code_table[443]  = '|';  _code_table[1]    = ' ';  _code_table[125]  = 'A';
   _code_table[235]  = 'B';  _code_table[173]  = 'C';  _code_table[181]  = 'D';
   _code_table[119]  = 'E';  _code_table[219]  = 'F';  _code_table[253]  = 'G';
@@ -35,8 +38,7 @@ Varicode::Varicode()
   _code_table[21]   = 'r';  _code_table[23]   = 's';  _code_table[5]    = 't';
   _code_table[55]   = 'u';  _code_table[123]  = 'v';  _code_table[107]  = 'w';
   _code_table[223]  = 'x';  _code_table[93]   = 'y';  _code_table[469]  = 'z';
-  _code_table[183]  = '0';  _code_table[445]  = '1';  _code_table[237]  = '2';
-  //                          ^- Collides with ';'!
+  _code_table[183]  = '0';  _code_table[189]  = '1';  _code_table[237]  = '2';
   _code_table[511]  = '3';  _code_table[375]  = '4';  _code_table[859]  = '5';
   _code_table[363]  = '6';  _code_table[941]  = '7';  _code_table[427]  = '8';
   _code_table[951]  = '9';
