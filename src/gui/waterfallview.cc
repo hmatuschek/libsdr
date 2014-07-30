@@ -76,6 +76,7 @@ LinearColorMap::map(const double &value) {
 WaterFallView::WaterFallView(Spectrum *spectrum, size_t height, QWidget *parent)
   : QWidget(parent), _spectrum(spectrum), _N(_spectrum->fftSize()), _M(height), _waterfall(_N,_M)
 {
+  setMinimumHeight(height);
   // Fill waterfall pixmap
   _waterfall.fill(Qt::black);
   // Create color map
