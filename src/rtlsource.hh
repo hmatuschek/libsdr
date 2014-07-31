@@ -55,7 +55,9 @@ public:
   /** Stops the reception. */
   void stop();
 
+  /** Returns the number of compatible devices found. */
   static size_t numDevices();
+  /** Returns the name of the specified device. */
   static std::string deviceName(size_t idx);
 
 protected:

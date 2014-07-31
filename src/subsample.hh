@@ -185,11 +185,17 @@ protected:
 };
 
 
-
+/** An interpolating sub-sampler. This node uses an 8-tap FIR filter to interpolate between
+ * two values (given 8). Please do not use this node to subsample by a factor grater than 8,
+ * as this may result into artifacts unless the signal was filtered accordingly before
+ * subsampling it. */
 template <class iScalar, class oScalar = iScalar>
 class InpolSubSampler: public Sink<iScalar>, public Source
 {
 public:
+  /** Constructor.
+   * @param frac Specifies the sub-sampling fraction. I.e. frac=2 will result into half the input
+   *        sample-rate. */
   InpolSubSampler(float frac)
     : Sink<iScalar>(), Source(), _frac(frac), _mu(0)
   {
@@ -201,10 +207,12 @@ public:
     }
   }
 
+  /** Destructor. */
   virtual ~InpolSubSampler() {
     // pass...
   }
 
+  /** Configures the sub-sampling node. */
   virtual void config(const Config &src_cfg) {
     // Requires type and buffer size
     if (!src_cfg.hasType() || !src_cfg.hasBufferSize()) { return; }
@@ -230,7 +238,7 @@ public:
     this->setConfig(Config(Traits<oScalar>::scalarId, src_cfg.sampleRate()/_frac, bufSize, 1));
   }
 
-
+  /** Performs the sub-sampling. */
   virtual void process(const Buffer<iScalar> &buffer, bool allow_overwrite) {
     size_t i=0, o=0;
     while (i<buffer.size()) {
@@ -248,10 +256,15 @@ public:
 
 
 protected:
+  /** The sub-sampling fraction. */
   float _frac;
+  /** The current (fractional) sample count. */
   float _mu;
+  /** A delay-line (buffer) for the interpolation. */
   Buffer<oScalar> _dl;
+  /** Index of the delay-line. */
   size_t _dl_idx;
+  /** The output buffer. */
   Buffer<oScalar> _buffer;
 };
 
