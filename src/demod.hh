@@ -296,6 +296,91 @@ protected:
 };
 
 
+/** A tiny node to de-emphasize the higher frequencies of a FM transmitted audio signal. */
+template <class Scalar>
+class FMDeemph: public Sink<Scalar>, Source
+{
+public:
+  /** Constructor. */
+  FMDeemph(bool enabled=true)
+    : Sink<Scalar>(), Source(), _enabled(enabled), _alpha(0), _avg(0), _buffer(0)
+  {
+    // pass...
+  }
+
+  /** Destructor. */
+  virtual ~FMDeemph() {
+    // pass...
+  }
+
+  /** Returns true if the filter node is enabled. */
+  inline bool isEnabled() const { return _enabled; }
+
+  /** Enable/Disable the filter node. */
+  inline void enable(enabled) { _enabled = enabled; }
+
+  /** Configures the node. */
+  virtual void config(const Config &src_cfg) {
+    // Requires type, sample rate & buffer size
+    if (!src_cfg.hasType() || !src_cfg.hasSampleRate() || !src_cfg.hasBufferSize()) { return; }
+    // Check if buffer type matches template
+    if (Config::typeId< std::complex<iScalar> >() != src_cfg.type()) {
+      ConfigError err;
+      err << "Can not configure FMDeemph: Invalid type " << src_cfg.type()
+          << ", expected " << Config::typeId< std::complex<iScalar> >();
+      throw err;
+    }
+    // Determine filter constant alpha:
+    _alpha = (int)round(
+          1.0/( (1.0-exp(-1.0/(src_cfg.sampleRate() * 75e-6) )) ) );
+    // Reset average:
+    _avg = 0;
+    // Allocate buffer:
+    _buffer = Buffer<Scalar>(src_cfg.bufferSize());
+    // Propergate config:
+    this->setConfig(Config(src_cfg.type(), src_cfg.sampleRate(), src_cfg.bufferSize(), 1));
+  }
+
+  /** Dispatches in- or out-of-place filtering. */
+  virtual void process(const Buffer<Scalar> &buffer, bool allow_overwrite)
+  {
+    // Skip if disabled:
+    if (!_enabled) { this->send(buffer, allow_overwrite); return; }
+    // Process in-place or not
+    if (allow_overwrite) {
+      _process(buffer, buffer);
+      this->send(buffer, allow_overwrite);
+    } else {
+      _process(buffer, _buffer);
+      this->send(buffer, false);
+    }
+  }
+
+protected:
+  /** Performs the actual filtering. */
+  void _process(const Buffer<Scalar> &in, const Buffer<Scalar> &out) {
+    for (size_t i=0; i<in.size(); i++) {
+      // Update average:
+      Scalar diff = in[i] - _avg;
+      if (diff > 0) { _avg += (diff + _alpha/2) / _alpha; }
+      else { avg += (diff - _alpha/2) / _alpha; }
+      // Store result
+      out[i] = (int16_t)avg;
+    }
+  }
+
+protected:
+  /** If true, the filter is enabled. If not, the node is a NOP. */
+  bool _enabled;
+  /** Filter constant. */
+  int _alpha;
+  /** Current averaged value. */
+  Scalar _avg;
+  /** The output buffer. */
+  Buffer<Scalar> _buffer;
+}
+
+
 /** Binary phase shift demodulation with carrier from an I/Q signal. */
 template <class Scalar>
 class BPSKDemod : public Combine< std::complex<Scalar> >, public Source
