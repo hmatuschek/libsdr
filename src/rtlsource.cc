@@ -81,10 +81,8 @@ RTLSource::setSampleRate(double sample_rate) {
 void
 RTLSource::enableAGC(bool enable) {
   _agc_enabled = enable;
-  if (_agc_enabled) {
-    rtlsdr_set_tuner_gain_mode(_device, !_agc_enabled);
-    rtlsdr_set_agc_mode(_device, _agc_enabled);
-  }
+  rtlsdr_set_tuner_gain_mode(_device, !_agc_enabled);
+  rtlsdr_set_agc_mode(_device, _agc_enabled);
 }
 
 void

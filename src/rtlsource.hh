@@ -18,7 +18,8 @@ public:
    * @c enableAGC and @c setGain methods.
    *
    * @param frequency Specifies the tuner frequency.
-   * @param sample_rate Specifies the sample rate.  */
+   * @param sample_rate Specifies the sample rate.
+   * @param device_idx Specifies the device to be used. */
   RTLSource(double frequency, double sample_rate=1e6, size_t device_idx=0);
 
   /** Destructor. */
