@@ -317,17 +317,17 @@ public:
   inline bool isEnabled() const { return _enabled; }
 
   /** Enable/Disable the filter node. */
-  inline void enable(enabled) { _enabled = enabled; }
+  inline void enable(bool enabled) { _enabled = enabled; }
 
   /** Configures the node. */
   virtual void config(const Config &src_cfg) {
     // Requires type, sample rate & buffer size
     if (!src_cfg.hasType() || !src_cfg.hasSampleRate() || !src_cfg.hasBufferSize()) { return; }
     // Check if buffer type matches template
-    if (Config::typeId< std::complex<iScalar> >() != src_cfg.type()) {
+    if (Config::typeId<Scalar>() != src_cfg.type()) {
       ConfigError err;
       err << "Can not configure FMDeemph: Invalid type " << src_cfg.type()
-          << ", expected " << Config::typeId< std::complex<iScalar> >();
+          << ", expected " << Config::typeId<Scalar>();
       throw err;
     }
     // Determine filter constant alpha:
@@ -363,9 +363,9 @@ protected:
       // Update average:
       Scalar diff = in[i] - _avg;
       if (diff > 0) { _avg += (diff + _alpha/2) / _alpha; }
-      else { avg += (diff - _alpha/2) / _alpha; }
+      else { _avg += (diff - _alpha/2) / _alpha; }
       // Store result
-      out[i] = (int16_t)avg;
+      out[i] = _avg;
     }
   }
 
@@ -378,100 +378,6 @@ protected:
   Scalar _avg;
   /** The output buffer. */
   Buffer<Scalar> _buffer;
-}
-
-
-/** Binary phase shift demodulation with carrier from an I/Q signal. */
-template <class Scalar>
-class BPSKDemod : public Combine< std::complex<Scalar> >, public Source
-{
-public:
-  /** Complex input scalar type. */
-  typedef std::complex<Scalar> CScalar;
-  /** Real super scalar. */
-  typedef typename Traits<Scalar>::SScalar SScalar;
-  /** Complex super scalar. */
-  typedef std::complex<SScalar> CSScalar;
-
-public:
-  /** Constructor. */
-  BPSKDemod()
-    : Combine<CScalar>(2), Source(), _buffer(0), _last(0)
-  {
-    // pass...
-  }
-
-  /** Destructor. */
-  virtual ~BPSKDemod() {
-    _buffer.unref();
-  }
-
-  /** The signal input sink. */
-  inline Sink<CScalar> *signal() { return Combine<CScalar>::_sinks[0]; }
-  /** The reference/carrier input sink. */
-  inline Sink<CScalar> *reference() { return Combine<CScalar>::_sinks[1]; }
-
-  /** Configures the BPSK demodulator. */
-  virtual void config(const Config &cfg) {
-    // Requires type and buffer size
-    if(!cfg.hasType() || !cfg.hasBufferSize()) { return; }
-    // Check type
-    if (Config::typeId<CScalar>() != cfg.type()) {
-      ConfigError err;
-      err << "Can not configure BPSKDemod node: Invalid type " << cfg.type()
-          << ", expected " << Config::typeId<CScalar>();
-      throw err;
-    }
-    // Allocate buffer
-    _buffer = Buffer<uint8_t>(cfg.bufferSize());
-    // Propergate config
-    this->setConfig(Config(Config::Type_u8, cfg.sampleRate(), _buffer.size(), 1));
-  }
-
-  /** Performs the BPSK demodulation. */
-  virtual void process(std::vector< RingBuffer< std::complex<Scalar> > > &buffers, size_t N)
-  {
-    // If there is nothing -> done
-    if (0 == N) { return; }
-    // If buffer is still in use, drop input
-    if (!_buffer.isUnused()) {
-#ifdef SDR_DEBUG
-      LogMessage msg(LOG_WARNING);
-      msg << "BPSKDemod: Output buffer still in use. Drop input.";
-      Logger::get().log(msg);
-#endif
-
-      for (size_t i=0; i<Combine<CScalar>::_sinks.size(); i++) {
-        Combine<CScalar>::_buffers[i].drop(N);
-      }
-      return;
-    }
-    // Process
-    N = std::min(N, _buffer.size());
-    // Compute first value:
-    CSScalar tmp = (CSScalar(buffers[0][0])*CSScalar(std::conj(buffers[1][0])));
-    SScalar a = _last.real()*tmp.real() + _last.imag()*tmp.imag();
-    SScalar b = _last.real()*tmp.imag() - _last.imag()*tmp.real();
-    _buffer[0] = (std::abs(std::atan2(a,b))>M_PI/2); _last = tmp;
-    for (size_t i=0; i<N; i++) {
-      tmp = (CSScalar(buffers[0][i])*CSScalar(std::conj(buffers[1][i])));
-      a = _last.real()*tmp.real() + _last.imag()*tmp.imag();
-      b = _last.real()*tmp.imag() - _last.imag()*tmp.real();
-      _buffer[i] = (std::abs(std::atan2(a,b))>M_PI/2); _last = tmp;
-    }
-    // Consume elements
-    for (size_t i=0; i<Combine<CScalar>::_sinks.size(); i++) {
-        Combine<CScalar>::_buffers[i].drop(N);
-    }
-    // Send buffer
-    this->send(_buffer.head(N));
-  }
-
-protected:
-  /** Output buffer (bits). */
-  Buffer<uint8_t> _buffer;
-  /** The last input value (signal). */
-  CSScalar _last;
 };
 
 }
