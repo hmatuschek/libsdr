@@ -5,7 +5,7 @@ using namespace sdr;
 
 
 RTLSource::RTLSource(double frequency, double sample_rate, size_t device_idx)
-  : Source(), _frequency(frequency), _sample_rate(sample_rate), _agc_enabled(true),
+  : Source(), _frequency(frequency), _sample_rate(sample_rate), _agc_enabled(true), _gains(),
     _buffer_size(131072), _device(0)
 {
   {
@@ -18,11 +18,13 @@ RTLSource::RTLSource(double frequency, double sample_rate, size_t device_idx)
   // Open device
   if (0 < rtlsdr_get_device_count()) {
     if (rtlsdr_open(&_device, device_idx)) {
-      ConfigError err; err << "Can not open RTL2832 USB device " << device_idx; throw err;
+      ConfigError err; err << "Can not open RTL2832 USB device " << device_idx;
+      throw err;
     }
   } else {
-    ConfigError err; err << "Can not open RTL2832 USB device: No with index "
-                         << device_idx << " found."; throw err;
+    ConfigError err; err << "Can not open RTL2832 USB device: No device with index "
+                         << device_idx << " found.";
+    throw err;
   }
 
   {
@@ -33,10 +35,15 @@ RTLSource::RTLSource(double frequency, double sample_rate, size_t device_idx)
 
   // Try to set center frequency
   if (0 < _frequency) { setFrequency(_frequency); }
-
   // Set sample rate
-  if (_sample_rate > 0) {
-    setSampleRate(sample_rate);
+  if (_sample_rate > 0) { setSampleRate(sample_rate); }
+
+  // Query gain factors:
+  int num_gains = rtlsdr_get_tuner_gains(_device, 0);
+  if (num_gains > 0) {
+    int gains[num_gains]; rtlsdr_get_tuner_gains(_device, gains);
+    _gains.reserve(num_gains);
+    for (int i=0; i<num_gains; i++) { _gains.push_back(gains[i]); }
   }
 
   // Enable AGC/manual gain

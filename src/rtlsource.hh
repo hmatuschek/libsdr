@@ -50,6 +50,8 @@ public:
   inline double gain() const { return rtlsdr_get_tuner_gain(_device); }
   /** (Re-) Sets the tuner gain. Has no effect in AGC mode. */
   void setGain(double gain);
+  /** Retunrs a vector of supported gain factors. */
+  inline const std::vector<double> & gainFactors() const { return _gains; }
 
   /** Starts the reception. */
   void start();
@@ -74,6 +76,8 @@ protected:
   double _sample_rate;
   /** If true, the AGC is enabled. */
   bool _agc_enabled;
+  /** A vector of gain factors supported by the device. */
+  std::vector<double> _gains;
   /** The buffer size. */
   size_t _buffer_size;
   /** The RTL2832 device object. */
