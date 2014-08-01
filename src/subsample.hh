@@ -90,8 +90,8 @@ protected:
   /** Performs the sub-sampling from @c in into @c out. */
   void _process(const Buffer<Scalar> &in, const Buffer<Scalar> &out) {
     size_t j=0;
-    for (size_t i=0; i<in.size(); i++, _left++) {
-      _last += in[i];
+    for (size_t i=0; i<in.size(); i++) {
+      _last += in[i]; _left++;
       if (_n <= _left) {
         out[j] = _last/SScalar(_n); j++; _last=0; _left=0;
       }

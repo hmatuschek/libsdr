@@ -422,11 +422,12 @@ protected:
    * averaging sub-sampling. */
   inline void _process(const Buffer<Scalar> &in, const Buffer<CScalar> &out) {
     size_t i=0, j=0;
-    for (; i<in.size(); i++, _sample_count++) {
+    for (; i<in.size(); i++) {
       // Store sample in ring buffer
       _ring[_ring_offset] = in[i];
 
       _last += this->applyFrequencyShift(_filter_ring());
+      _sample_count++;
 
       // _ring_offset modulo _order
       _ring_offset++;
