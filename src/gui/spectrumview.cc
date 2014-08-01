@@ -22,6 +22,7 @@ SpectrumView::SpectrumView(Spectrum *spectrum, QWidget *parent)
 
   // Connect to update signal
   QObject::connect(_spectrum, SIGNAL(spectrumUpdated()), this, SLOT(update()));
+  QObject::connect(_spectrum, SIGNAL(spectrumConfigured()), this, SLOT(update()));
 }
 
 SpectrumView::~SpectrumView() {

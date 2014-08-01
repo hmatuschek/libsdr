@@ -47,6 +47,9 @@ Spectrum::config(const Config &src_cfg) {
       << " # averages: " << _Ntrafo << std::endl
       << " refresh rate: " << _sample_rate/(_N_samples*_Ntrafo) << "Hz";
   Logger::get().log(msg);
+
+  // Signal spectrum reconfiguration
+  emit spectrumConfigured();
 }
 
 

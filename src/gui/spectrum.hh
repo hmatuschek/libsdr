@@ -48,6 +48,8 @@ public:
 signals:
   /** Gets emitted once the spectrum was updated. */
   void spectrumUpdated();
+  /** Gets emitted once the spectrum was reconfigured. */
+  void spectrumConfigured();
 
 protected:
   /** Updates the FFT in the _compute buffer. */

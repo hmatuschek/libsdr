@@ -87,6 +87,7 @@ WaterFallView::WaterFallView(Spectrum *spectrum, size_t height, QWidget *parent)
 
   // Get notified once a new spectrum is available:
   QObject::connect(_spectrum, SIGNAL(spectrumUpdated()), this, SLOT(_onSpectrumUpdated()));
+  QObject::connect(_spectrum, SIGNAL(spectrumConfigured()), this, SLOT(update()));
 }
 
 void
