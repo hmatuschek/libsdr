@@ -44,7 +44,7 @@ public:
     _buffer =  Buffer<Scalar>(src_cfg.bufferSize());
 
     LogMessage msg(LOG_DEBUG);
-    msg << "Configure AMDemod:" << std::endl
+    msg << "Configure AMDemod: " << this << std::endl
         << " input type: " << Traits< std::complex<Scalar> >::scalarId << std::endl
         << " output type: " << Traits<Scalar>::scalarId << std::endl
         << " sample rate: " << src_cfg.sampleRate() << std::endl
@@ -128,7 +128,7 @@ public:
     _buffer =  Buffer<Scalar>(src_cfg.bufferSize());
 
     LogMessage msg(LOG_DEBUG);
-    msg << "Configure USBDemod:" << std::endl
+    msg << "Configure USBDemod: " << this << std::endl
         << " input type: " << Traits< std::complex<Scalar> >::scalarId << std::endl
         << " output type: " << Traits<Scalar>::scalarId << std::endl
         << " sample rate: " << src_cfg.sampleRate() << std::endl
@@ -216,7 +216,7 @@ public:
     _can_overwrite = (sizeof(std::complex<iScalar>) >= sizeof(oScalar));
 
     LogMessage msg(LOG_DEBUG);
-    msg << "Configured FMDemod node:" << std::endl
+    msg << "Configured FMDemod node: " << this << std::endl
         << " sample-rate: " << src_cfg.sampleRate() << std::endl
         << " in-type / out-type: " << src_cfg.type()
         << " / " << Config::typeId<oScalar>() << std::endl

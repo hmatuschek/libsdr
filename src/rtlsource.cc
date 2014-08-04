@@ -80,8 +80,11 @@ RTLSource::setSampleRate(double sample_rate) {
   if (sr < 225001) { sr = 225001; }
   else if ((sr>300000) && (sr<900001)) { sr = 900001; }
   else if (sr>2400000) { sr = 2400000; }
+
   rtlsdr_set_sample_rate(_device, sr);
+  rtlsdr_reset_buffer(_device);
   _sample_rate = rtlsdr_get_sample_rate(_device);
+
   this->setConfig(Config(Config::Type_cu8, _sample_rate, _buffer_size, 15));
 }
 
@@ -110,7 +113,9 @@ RTLSource::stop() {
   void *p;
   // stop async reading of RTL device
   rtlsdr_cancel_async(_device);
-  // Wait for blocked thread to exit
+  // Wait for blocked thread to exit:
+  //  This is important to ensure that no new messages are added to the
+  //  queue after this function returned.
   pthread_join(_thread, &p);
 }
 

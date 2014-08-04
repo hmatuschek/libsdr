@@ -68,8 +68,15 @@ Queue::stop() {
 
 void
 Queue::wait() {
-  void *p;
-  pthread_join(_thread, &p);
+  // Wait for the queue to quit
+  void *p; pthread_join(_thread, &p);
+
+  // Clear queue.
+  std::list<Message>::iterator item = _queue.begin();
+  for (; item != _queue.end(); item++) {
+    item->buffer().unref();
+  }
+  _queue.clear();
 }
 
 
@@ -110,7 +117,11 @@ Queue::_main()
   }
   // Call all stop-signal handlers
   _signalStop();
-  Logger::get().log(LogMessage(LOG_DEBUG, "Queue stopped."));
+  {
+    LogMessage msg(LOG_DEBUG, "Queue stopped.");
+    msg << " Messages left in queue: " << _queue.size();
+    Logger::get().log(msg);
+  }
 }
 
 void

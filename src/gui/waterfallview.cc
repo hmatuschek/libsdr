@@ -102,6 +102,7 @@ WaterFallView::_onSpectrumUpdated() {
   for (size_t i=0; i<_N; i++) {
     int idx = (_spectrum->fftSize()/2+i) % _spectrum->fftSize();
     double value = 10*log10(_spectrum->spectrum()[idx])-10*log10(_N);
+    if (value != value) { value = 0; }
     painter.setPen((*_colorMap)(value));
     painter.drawPoint(i, _M-1);
   }
