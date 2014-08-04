@@ -2,7 +2,7 @@
 set(LIBSDR_SOURCES
     buffer.cc node.cc queue.cc traits.cc
     portaudio.cc utils.cc wavfile.cc
-    exception.cc logger.cc psk31.cc interpolate.cc)
+    exception.cc logger.cc psk31.cc)
 set(LIBSDR_HEADERS sdr.hh math.hh
     buffer.hh node.hh queue.hh buffernode.hh filternode.hh traits.hh autocast.hh
     siggen.hh portaudio.hh utils.hh wavfile.hh demod.hh firfilter.hh
