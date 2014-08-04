@@ -545,7 +545,7 @@ protected:
 
 
 
-/** An automatic gain control widget. */
+/** An automatic gain control node. */
 template <class Scalar>
 class AGC: public Sink<Scalar>, public Source
 {
@@ -592,12 +592,12 @@ public:
   }
 
   /** Returns the current gain factor. */
-  inline double gain() const {
+  inline float gain() const {
     return _gain;
   }
 
   /** Resets the current gain factor. */
-  inline void setGain(double gain) {
+  inline void setGain(float gain) {
     _gain = gain;
   }
 
@@ -669,15 +669,15 @@ protected:
   /** If true, the automatic gain adjustment is enabled. */
   bool _enabled;
   /** The time-constant of the AGC. */
-  double _tau;
+  float _tau;
   /** One over the time-constant. */
-  double _lambda;
+  float _lambda;
   /** The averaged std. dev. of the input signal. */
-  double _sd;
+  float _sd;
   /** The target level of the output signal. */
-  double _target;
+  float _target;
   /** The current gain factor. */
-  double _gain;
+  float _gain;
   /** The current sample-rate. */
   double _sample_rate;
   /** The output buffer. */
