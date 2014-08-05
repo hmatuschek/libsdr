@@ -298,7 +298,7 @@ protected:
 
 /** A tiny node to de-emphasize the higher frequencies of a FM transmitted audio signal. */
 template <class Scalar>
-class FMDeemph: public Sink<Scalar>, Source
+class FMDeemph: public Sink<Scalar>, public Source
 {
 public:
   /** Constructor. */
@@ -346,13 +346,14 @@ public:
   {
     // Skip if disabled:
     if (!_enabled) { this->send(buffer, allow_overwrite); return; }
+
     // Process in-place or not
     if (allow_overwrite) {
       _process(buffer, buffer);
       this->send(buffer, allow_overwrite);
     } else {
       _process(buffer, _buffer);
-      this->send(buffer, false);
+      this->send(_buffer.head(buffer.size()), false);
     }
   }
 

@@ -104,6 +104,88 @@ public:
 };
 
 
+/** A simple node, that allows to balance the IQ signal. */
+template <class Scalar>
+class IQBalance: public Sink< std::complex<Scalar> >, public Source
+{
+public:
+  /** The internal used compute scalar. */
+  typedef typename Traits<Scalar>::SScalar SScalar;
+
+public:
+  IQBalance(double balance=0.0)
+    : Sink< std::complex<Scalar> >(), Source(), _realFact(1), _imagFact(1)
+  {
+    if (balance < 0) {
+      // scale real part
+      balance = std::min(1.,-balance);
+      _realFact = (1-balance)*(1<<8);
+      _imagFact = (1<<8);
+    } else { // scale imag part
+      balance = std::min(1., balance);
+      _realFact = (1<<8);
+      _imagFact = (1-balance)*(1<<8);
+    }
+  }
+
+  virtual ~IQBalance() {
+    _buffer.unref();
+  }
+
+  double balance() const {
+    if (_realFact != (1<<8)) {
+      return (double(_realFact)/(1<<8)-1);
+    }
+    return (1-double(_imagFact)/(1<<8));
+  }
+
+  void setBalance(double balance) {
+    if (balance < 0) {
+      // scale real part
+      balance = std::min(1.,-balance);
+      _realFact = balance*(1<<8);
+      _imagFact = (1<<8);
+    } else { // scale imag part
+      balance = std::min(1., balance);
+      _realFact = (1<<8);
+      _imagFact = balance*(1<<8);
+    }
+  }
+
+  virtual void config(const Config &src_cfg) {
+    // Check if config is complete
+    if (! src_cfg.hasBufferSize()) { return; }
+    // Allocate buffer
+    _buffer = Buffer< std::complex<Scalar> >(src_cfg.bufferSize());
+    // Forward config
+    Config cfg(src_cfg); cfg.setNumBuffers(1);
+    this->setConfig(cfg);
+  }
+
+  virtual void process(const Buffer<std::complex<Scalar> > &buffer, bool allow_overwrite) {
+    if (allow_overwrite) {
+      _process(buffer, buffer);
+      this->send(buffer);
+    } else {
+      _process(buffer, _buffer);
+      this->send(_buffer.head(buffer.size()));
+    }
+  }
+
+protected:
+  void _process(const Buffer< std::complex<Scalar> > &in, const Buffer< std::complex<Scalar> > &out) {
+    for (size_t i=0; i<in.size(); i++) {
+      out[i] = std::complex<Scalar>((_realFact*SScalar(in[i].real()))/(1<<8),
+                                    (_imagFact*SScalar(in[i].imag()))/(1<<8));
+    }
+  }
+
+protected:
+  int32_t _realFact;
+  int32_t _imagFact;
+  Buffer< std::complex<Scalar> > _buffer;
+};
+
 
 /** Tiny helper node to transform a real part into a complex, including
  * a possible type-cast*/
