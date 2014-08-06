@@ -198,6 +198,8 @@ WavSource::isReal() const {
 void
 WavSource::next()
 {
+  //Logger::get().log(LogMessage(LOG_DEBUG, "WavSource: Read next buffer"));
+
   if ((0 == _frames_left)) {
     // Close file
     _file.close();

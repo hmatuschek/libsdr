@@ -6,6 +6,12 @@ ENDIF(SDR_WITH_QT5 AND SDR_WITH_FFTW AND SDR_WITH_PORTAUDIO)
 IF(SDR_WITH_PORTAUDIO)
  add_executable(sdr_wavplay sdr_wavplay.cc)
  target_link_libraries(sdr_wavplay ${LIBS} libsdr)
+
+ add_executable(sdr_fm sdr_fm.cc)
+ target_link_libraries(sdr_fm ${LIBS} libsdr)
+
+add_executable(sdr_afsk1200 sdr_afsk1200.cc)
+target_link_libraries(sdr_afsk1200 ${LIBS} libsdr)
 ENDIF(SDR_WITH_PORTAUDIO)
 
 IF(SDR_WITH_QT5 AND SDR_WITH_FFTW AND SDR_WITH_PORTAUDIO)
@@ -16,5 +22,3 @@ ENDIF(SDR_WITH_QT5 AND SDR_WITH_FFTW AND SDR_WITH_PORTAUDIO)
 add_executable(sdr_psk31 sdr_psk31.cc)
 target_link_libraries(sdr_psk31 ${LIBS} ${QT_LIBRARIES} libsdr libsdr-gui)
 
-add_executable(sdr_fm sdr_fm.cc)
-target_link_libraries(sdr_fm ${LIBS} libsdr)
