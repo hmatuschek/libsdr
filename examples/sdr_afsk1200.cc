@@ -73,38 +73,44 @@ public:
       throw err;
     }
 
-    // The sample rate
+    // The input sample rate
     _sampleRate = src_cfg.sampleRate();
+
     // Symbols per bit (limit to 32 symbols per bit)
     _corrLen = std::min(int(_sampleRate/_baud), 32);
+
+    // Compute symbol rate:
+    _symbolRate = _baud*_corrLen;
+
     // Samples per symbol (fractional):
-    //  The resulting sub-sampling will have a symbol rate of _corrLen*_baud
-    _mu = 0.0; _muIncr = _sampleRate/(_corrLen*_baud);
+    _mu = 0.0; _muIncr = _sampleRate/_symbolRate;
+
     // Delayline for interpolating sub-sampler
     _dl = Buffer<float>(2*8);
-    for (size_t i=0; i<2*8; i++) { _dl[i] = 0; }
+    for (size_t i=0; i<(2*8); i++) { _dl[i] = 0; }
     _dl_idx = 0;
 
     // Assemble phase LUT:
-    double phiMark=0, phiSpace=0;
     _markLUT  = Buffer< std::complex<float> >(_corrLen);
     _spaceLUT = Buffer< std::complex<float> >(_corrLen);
+
     // Allocate ring-buffers for mark and space symbols
     _markHist = Buffer< std::complex<float> >(_corrLen);
     _spaceHist = Buffer< std::complex<float> >(_corrLen);
 
     // Initialize LUTs and ring-buffers
+    double phiMark=0, phiSpace=0;
     for (size_t i=0; i<_corrLen; i++) {
       _markLUT[i] = std::exp(std::complex<float>(0.0, phiMark));
       _spaceLUT[i] = std::exp(std::complex<float>(0.0, phiSpace));
-      phiMark  += (2.*M_PI*_Fmark)/(_baud*_corrLen);
-      phiSpace += (2.*M_PI*_Fspace)/(_baud*_corrLen);
+      phiMark  += (2.*M_PI*_Fmark)/_symbolRate;
+      phiSpace += (2.*M_PI*_Fspace)/_symbolRate;
       _markHist[i] = 0; _spaceHist[i] = 0;
     }
     _lutIdx = 0;
 
     // Get phase increment per symbol
-    _phase = 0; _phaseInc = _phasePeriod/_corrLen;
+    _phase = 0; _phaseInc = _phaseMask/_corrLen;
 
     // Allocate output buffer:
     _buffer = Buffer<uint8_t>(src_cfg.bufferSize()/_corrLen + 1);
@@ -114,7 +120,7 @@ public:
         << " input sample rate: " << _sampleRate << "Hz" << std::endl
         << " samples per symbol: " << _muIncr << std::endl
         << " symbols per bit: " << _corrLen << std::endl
-        << " symbol rate: " << (_corrLen*_baud) << "Hz" << std::endl
+        << " symbol rate: " << _symbolRate << "Hz" << std::endl
         << " Phase incr/symbol: " << float(_phaseInc)/_phasePeriod;
 
     Logger::get().log(msg);
@@ -130,7 +136,7 @@ public:
       while ((_mu>1) && (i<buffer.size())) {
         // Put sample into delay line
         _dl[_dl_idx] = buffer[i]; _dl[_dl_idx+8] = buffer[i];
-        _dl_idx++; if (_dl_idx == 8) { _dl_idx = 0; }
+        _dl_idx = (_dl_idx +1) % 8; //++; if (_dl_idx == 8) { _dl_idx = 0; }
         _mu-=1; i++;
       }
 
@@ -143,12 +149,12 @@ public:
         _lutIdx++;  if (_lutIdx == _corrLen) { _lutIdx=0; }
         float f = _getSymbol();
         // Get symbol
-        _symbols <<= 1; _symbols |= ((f>0)&0x1u);
+        _symbols <<= 1; _symbols |= (f>0);
 
         // If transition
-        if ((_symbols ^ (_symbols >> 1)) & 0x1u) {
+        if ((_symbols ^ (_symbols >> 1)) & 1) {
           // Phase correction
-          if (_phase < (_phasePeriod/2 + _phaseInc/2)) {
+          if (_phase < (_phasePeriod/2)) {
             _phase += _phaseInc/8;
           } else {
             _phase -= _phaseInc/8;
@@ -158,6 +164,7 @@ public:
         // Advance phase
         _phase += _phaseInc;
 
+        // Sample bit
         if (_phase >= _phasePeriod) {
           // Modulo 2 pi
           _phase &= _phaseMask;
@@ -173,23 +180,22 @@ public:
 
 
 protected:
-  inline float _getSymbol() {
-    std::complex<float> markSum(0), spaceSum(0);
+  inline double _getSymbol() {
+    std::complex<double> markSum(0), spaceSum(0);
     for (size_t i=0; i<_corrLen; i++) {
-      markSum += _markHist[i]/float(1<<16);
-      spaceSum += _spaceHist[i]/float(1<<16);
+      markSum += _markHist[i];
+      spaceSum += _spaceHist[i];
     }
-    markSum /= float(_corrLen); spaceSum /= float(_corrLen);
-    float f = markSum.real()*markSum.real() +
-        markSum.imag()*markSum.imag()
-        - spaceSum.real()*spaceSum.real() -
+    double f = markSum.real()*markSum.real() +
+        markSum.imag()*markSum.imag() -
+        spaceSum.real()*spaceSum.real() -
         spaceSum.imag()*spaceSum.imag();
     return f;
   }
 
 
 protected:
-  float _sampleRate;
+  float _sampleRate, _symbolRate;
   float _baud;
   float _Fmark, _Fspace;
 
@@ -249,13 +255,13 @@ public:
 
   virtual void process(const Buffer<uint8_t> &buffer, bool allow_overwrite) {
     for (size_t i=0; i<buffer.size(); i++) {
-      _bitstream <<= 1; _bitstream |= !!(buffer[i]&0x1u);
+      _bitstream <<= 1; _bitstream |= buffer[i];
 
-      if ((_bitstream & 0xffu) == 0x7eu) {
+      if ((_bitstream & 0xff) == 0x7e) {
         if (_state && ((_ptr - _rxbuffer) > 2)) {
           *_ptr = 0;
           if (! check_crc_ccitt(_rxbuffer, _ptr-_rxbuffer)) {
-            std::cerr << "Got invalid buffer : " << _rxbuffer << std::endl;
+            std::cerr << "Got invalid buffer: " << _rxbuffer << std::endl;
           } else {
             std::cerr << "GOT: " << _rxbuffer << std::endl;
           }
@@ -273,15 +279,16 @@ public:
 
       if ((_bitstream & 0x3f) == 0x3e) { /* stuffed bit */ continue; }
 
-      if (_bitstream & 1) { _bitbuffer |= 0x100u; }
+      if (_bitstream & 1) { _bitbuffer |= 0x100; }
 
       if (_bitbuffer & 1) {
-        if ((_ptr-_rxbuffer) > 512) {
+        if ((_ptr-_rxbuffer) >= 512) {
           Logger::get().log(LogMessage(LOG_ERROR, "AX.25 packet too long."));
           _state = 0; continue;
         }
         std::cerr << "Got byte: " << std::hex << int( (_bitbuffer>>1) & 0xff )
-                  << ": " << char(_bitbuffer>>1) << std::endl;
+                  << ": " << char(_bitbuffer>>1)
+                  << "(" << char(_bitbuffer>>2) << ")" << std::endl;
         *_ptr++ = (_bitbuffer >> 1); _bitbuffer = 0x80u; continue;
       }
       _bitbuffer >>= 1;
