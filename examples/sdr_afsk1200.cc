@@ -130,8 +130,7 @@ public:
       while ((_mu>1) && (i<buffer.size())) {
         // Put sample into delay line
         _dl[_dl_idx] = buffer[i]; _dl[_dl_idx+8] = buffer[i];
-        _dl_idx++; if (_dl_idx == 8) { _dl_idx = 0; }
-        _mu-=1; i++;
+        _dl_idx = (_dl_idx+1)%8; _mu -= 1; i++;
       }
 
       if (i<buffer.size()) {
@@ -143,7 +142,7 @@ public:
         _lutIdx++;  if (_lutIdx == _corrLen) { _lutIdx=0; }
         float f = _getSymbol();
         // Get symbol
-        _symbols <<= 1; _symbols |= ((f>0)&0x1u);
+        _symbols <<= 1; _symbols |= (f>0);
 
         // If transition
         if ((_symbols ^ (_symbols >> 1)) & 0x1u) {
@@ -247,15 +246,18 @@ public:
     _ptr       = _rxbuffer;
   }
 
-  virtual void process(const Buffer<uint8_t> &buffer, bool allow_overwrite) {
-    for (size_t i=0; i<buffer.size(); i++) {
-      _bitstream <<= 1; _bitstream |= !!(buffer[i]&0x1u);
+  virtual void process(const Buffer<uint8_t> &buffer, bool allow_overwrite)
+  {
+    for (size_t i=0; i<buffer.size(); )
+    {
+      _bitstream <<= 1; _bitstream |= !!(buffer[i]&0x1u); i++;
 
       if ((_bitstream & 0xffu) == 0x7eu) {
         if (_state && ((_ptr - _rxbuffer) > 2)) {
           *_ptr = 0;
           if (! check_crc_ccitt(_rxbuffer, _ptr-_rxbuffer)) {
-            std::cerr << "Got invalid buffer : " << _rxbuffer << std::endl;
+            std::cerr << "Got invalid buffer (" << std::dec << (_ptr-_rxbuffer)
+                      << "): " << _rxbuffer << std::endl;
           } else {
             std::cerr << "GOT: " << _rxbuffer << std::endl;
           }
@@ -281,8 +283,9 @@ public:
           _state = 0; continue;
         }
         std::cerr << "Got byte: " << std::hex << int( (_bitbuffer>>1) & 0xff )
-                  << ": " << char(_bitbuffer>>1) << std::endl;
-        *_ptr++ = (_bitbuffer >> 1); _bitbuffer = 0x80u; continue;
+                  << ": " << char(_bitbuffer>>1)
+                  << " (" << char(_bitbuffer>>2) << ")" << std::endl;
+        *_ptr++ = (_bitbuffer >> 1); _bitbuffer = 0x0080u; continue;
       }
       _bitbuffer >>= 1;
     }
