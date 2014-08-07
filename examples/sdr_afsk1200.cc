@@ -77,14 +77,13 @@ public:
     _sampleRate = src_cfg.sampleRate();
 
     // Symbols per bit (limit to 32 symbols per bit)
-    _corrLen = std::min(int(_sampleRate/_baud), 32);
+    _corrLen = std::min(int(_sampleRate/_baud), 31);
 
     // Compute symbol rate:
     _symbolRate = _baud*_corrLen;
 
     // Samples per symbol (fractional):
     _mu = 0.0; _muIncr = _sampleRate/_symbolRate;
-
     // Delayline for interpolating sub-sampler
     _dl = Buffer<float>(2*8);
     for (size_t i=0; i<(2*8); i++) { _dl[i] = 0; }
@@ -110,7 +109,8 @@ public:
     _lutIdx = 0;
 
     // Get phase increment per symbol
-    _phase = 0; _phaseInc = _phaseMask/_corrLen;
+    //  equiv. to _phasePeriod*_baud/_symbolRate
+    _phase = 0; _phaseInc = _baud/_symbolRate;
 
     // Allocate output buffer:
     _buffer = Buffer<uint8_t>(src_cfg.bufferSize()/_corrLen + 1);
@@ -145,7 +145,7 @@ public:
         _markHist[_lutIdx] = sample*_markLUT[_lutIdx];
         _spaceHist[_lutIdx] = sample*_spaceLUT[_lutIdx];
         // Modulo LUT length
-        _lutIdx++;  if (_lutIdx == _corrLen) { _lutIdx=0; }
+        _lutIdx++; if (_lutIdx==_corrLen) { _lutIdx=0; }
         float f = _getSymbol();
         // Get symbol
         _symbols <<= 1; _symbols |= (f>0);
@@ -153,10 +153,10 @@ public:
         // If transition
         if ((_symbols ^ (_symbols >> 1)) & 1) {
           // Phase correction
-          if (_phase < (_phasePeriod/2)) {
-            _phase += _phaseInc/8;
+          if (_phase < 0.5) {
+            _phase -= _phase/10;
           } else {
-            _phase -= _phaseInc/8;
+            _phase += (1-_phase)/10;
           }
         }
 
@@ -164,9 +164,9 @@ public:
         _phase += _phaseInc;
 
         // Sample bit
-        if (_phase >= _phasePeriod) {
-          // Modulo 2 pi
-          _phase &= _phaseMask;
+        if (_phase >= 1) {
+          // Modulo "2 pi"
+          _phase = fmodf(_phase, 1.0);
           // Store bit
           _lastBits <<= 1; _lastBits |= (_symbols & 1);
           // Put decoded bit in output buffer
@@ -212,8 +212,8 @@ protected:
 
   uint32_t _symbols;
   uint32_t _lastBits;
-  uint32_t _phase;
-  uint32_t _phaseInc;
+  float _phase;
+  float _phaseInc;
 
   static const uint32_t _phasePeriod = 0x10000u;
   static const uint32_t _phaseMask   = 0x0ffffu;
@@ -247,15 +247,23 @@ public:
     }
 
     _bitstream = 0;
-    _bitbuffer = 0x00;
+    _bitbuffer = 0;
     _state     = 0;
     _ptr       = _rxbuffer;
+
+    // Allocate output buffer
+    _buffer = Buffer<uint8_t>(512);
+
+    // propergate config
+    this->setConfig(Config(Traits<uint8_t>::scalarId, 0, 512, 1));
   }
 
   virtual void process(const Buffer<uint8_t> &buffer, bool allow_overwrite) {
     for (size_t i=0; i<buffer.size(); i++) {
-      _bitstream <<= 1; _bitstream |= buffer[i];
+      // Store bit in stream
+      _bitstream <<= 1; _bitstream |= !!buffer[i];
 
+      // Check for sync byte
       if ((_bitstream & 0xff) == 0x7e) {
         if (_state && ((_ptr - _rxbuffer) > 2)) {
           *_ptr = 0;
@@ -263,33 +271,46 @@ public:
             std::cerr << "Got invalid buffer: " << _rxbuffer << std::endl;
           } else {
             std::cerr << "GOT: " << _rxbuffer << std::endl;
+            memcpy(_buffer.ptr(), _rxbuffer, _ptr-_rxbuffer);
+            this->send(_buffer.head(_ptr-_rxbuffer));
           }
-        }
 
+        }
         _state = 1;
         _ptr = _rxbuffer;
-        _bitbuffer = 0x80u;
+        _bitbuffer = 0x80;
         continue;
       }
 
+      // If 7 ones are received in a row -> error, wait or sync byte
       if ((_bitstream & 0x7f) == 0x7f) { _state = 0; continue; }
 
+      // If state == wait for sync byte -> receive next bit
       if (!_state) { continue; }
 
-      if ((_bitstream & 0x3f) == 0x3e) { /* stuffed bit */ continue; }
+      /* stuffed bit */
+      if ((_bitstream & 0x3f) == 0x3e) { continue; }
 
-      if (_bitstream & 1) { _bitbuffer |= 0x100; }
+      // prepend bit to bitbuffer
+      _bitbuffer |= ((_bitstream & 1) << 8);
 
+      // If 8 bits have been received (stored in b8-b1 of _bitbuffer)
       if (_bitbuffer & 1) {
+        // Check for buffer overrun
         if ((_ptr-_rxbuffer) >= 512) {
           Logger::get().log(LogMessage(LOG_ERROR, "AX.25 packet too long."));
-          _state = 0; continue;
+          // Wait for next sync byte
+          _state = 0;
+          continue;
         }
-        std::cerr << "Got byte: " << std::hex << int( (_bitbuffer>>1) & 0xff )
-                  << ": " << char(_bitbuffer>>1)
-                  << " (" << char(_bitbuffer>>2) << ")" << std::endl;
-        *_ptr++ = (_bitbuffer >> 1); _bitbuffer = 0x0080u; continue;
+
+        // Store received byte and ...
+        *_ptr++ = (_bitbuffer >> 1);
+        // reset bit buffer
+        _bitbuffer = 0x80;
+        continue;
       }
+      // Shift bitbuffer one to the left
       _bitbuffer >>= 1;
     }
   }
@@ -301,6 +322,8 @@ protected:
 
   uint8_t _rxbuffer[512];
   uint8_t *_ptr;
+
+  Buffer<uint8_t> _buffer;
 };
 
 
