@@ -43,7 +43,7 @@ Spectrum::config(const Config &src_cfg) {
       << " Data type: " << _input_type << std::endl
       << " sample-rate: " << _sample_rate << std::endl
       << " FFT size: " << _fft_size << std::endl
-      << " # sample drops: " << _N_samples << std::endl
+      << " # sample drops: " << _N_samples-1 << std::endl
       << " # averages: " << _Ntrafo << std::endl
       << " refresh rate: " << _sample_rate/(_N_samples*_Ntrafo) << "Hz";
   Logger::get().log(msg);
