@@ -76,11 +76,10 @@ public:
     // The input sample rate
     _sampleRate = src_cfg.sampleRate();
 
-    // Symbols per bit (limit to 32 symbols per bit)
-    _corrLen = std::min(int(_sampleRate/_baud), 31);
-
+    // Samples per bit
+    _corrLen = int(_sampleRate/_baud);
     // Compute symbol rate:
-    _symbolRate = _baud*_corrLen;
+    _symbolRate = std::min(10*_baud, _baud*_corrLen);
 
     // Samples per symbol (fractional):
     _mu = 0.0; _muIncr = _sampleRate/_symbolRate;
@@ -102,15 +101,17 @@ public:
     for (size_t i=0; i<_corrLen; i++) {
       _markLUT[i] = std::exp(std::complex<float>(0.0, phiMark));
       _spaceLUT[i] = std::exp(std::complex<float>(0.0, phiSpace));
-      phiMark  += (2.*M_PI*_Fmark)/_symbolRate;
-      phiSpace += (2.*M_PI*_Fspace)/_symbolRate;
+      phiMark  += (2.*M_PI*_Fmark)/_sampleRate;
+      phiSpace += (2.*M_PI*_Fspace)/_sampleRate;
       _markHist[i] = 0; _spaceHist[i] = 0;
     }
     _lutIdx = 0;
 
     // Get phase increment per symbol
-    //  equiv. to _phasePeriod*_baud/_symbolRate
-    _phase = 0; _phaseInc = _baud/_symbolRate;
+    _phase = 0; _omega = _baud/_symbolRate;
+    _omegaMin = _omega - 0.01*_omega;
+    _omegaMax = _omega + 0.01*_omega;
+    _gainOmega = 0.01;
 
     // Allocate output buffer:
     _buffer = Buffer<uint8_t>(src_cfg.bufferSize()/_corrLen + 1);
@@ -121,7 +122,7 @@ public:
         << " samples per symbol: " << _muIncr << std::endl
         << " symbols per bit: " << _corrLen << std::endl
         << " symbol rate: " << _symbolRate << "Hz" << std::endl
-        << " Phase incr/symbol: " << float(_phaseInc)/_phasePeriod;
+        << " Phase incr/symbol: " << float(_omega);
 
     Logger::get().log(msg);
 
@@ -134,34 +135,24 @@ public:
     while (i<buffer.size()) {
       // Update sub-sampler
       while ((_mu>1) && (i<buffer.size())) {
-        // Put sample into delay line
-        _dl[_dl_idx] = buffer[i]; _dl[_dl_idx+8] = buffer[i];
+        _markHist[_lutIdx] = float(buffer[i])*_markLUT[_lutIdx];
+        _spaceHist[_lutIdx] = float(buffer[i])*_spaceLUT[_lutIdx];
+        // Modulo LUT length
+        _lutIdx++; if (_lutIdx==_corrLen) { _lutIdx=0; }
+        float symbol = _getSymbol();
+        // Put symbol into delay line
+        _dl[_dl_idx] = symbol; _dl[_dl_idx+8] = symbol;
         _dl_idx = (_dl_idx+1)%8; _mu -= 1; i++;
       }
 
+
       if (i<buffer.size()) {
-        // Get sample
+        // Get interpolated symbol
         float sample = interpolate(_dl.sub(_dl_idx, 8), _mu); _mu += _muIncr;
-        _markHist[_lutIdx] = sample*_markLUT[_lutIdx];
-        _spaceHist[_lutIdx] = sample*_spaceLUT[_lutIdx];
-        // Modulo LUT length
-        _lutIdx++; if (_lutIdx==_corrLen) { _lutIdx=0; }
-        float f = _getSymbol();
         // Get symbol
-        _symbols <<= 1; _symbols |= (f>0);
-
-        // If transition
-        if ((_symbols ^ (_symbols >> 1)) & 1) {
-          // Phase correction
-          if (_phase < 0.5) {
-            _phase -= _phase/10;
-          } else {
-            _phase += (1-_phase)/10;
-          }
-        }
-
+        _symbols <<= 1; _symbols |= (sample>0);
         // Advance phase
-        _phase += _phaseInc;
+        _phase += _omega;
 
         // Sample bit
         if (_phase >= 1) {
@@ -170,7 +161,20 @@ public:
           // Store bit
           _lastBits <<= 1; _lastBits |= (_symbols & 1);
           // Put decoded bit in output buffer
+          // transition -> 0; no transition -> 1
           _buffer[o++] = ((_lastBits ^ (_lastBits >> 1) ^ 1) & 1);
+        }
+
+        // If transition
+        if ((_symbols ^ (_symbols >> 1)) & 1) {
+          // Phase correction
+          /*std::cerr << "Transition at phi=" << _phase << std::endl
+                    << "  update omega from " << _omega << " to "; */
+          if (_phase < 0.5) { _omega -= _gainOmega*(_phase); }
+          else { _omega += _gainOmega*(1-_phase); }
+          // Limit omega
+          _omega = std::min(_omegaMax, std::max(_omegaMin, _omega));
+          //std::cerr << _omega << std::endl;
         }
       }
     }
@@ -213,7 +217,8 @@ protected:
   uint32_t _symbols;
   uint32_t _lastBits;
   float _phase;
-  float _phaseInc;
+  float _omega, _omegaMin, _omegaMax;
+  float _gainOmega;
 
   static const uint32_t _phasePeriod = 0x10000u;
   static const uint32_t _phaseMask   = 0x0ffffu;

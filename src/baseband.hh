@@ -32,7 +32,7 @@ public:
 public:
   /** Constructor, the filter center frequency @c Ff equals the given center frequency @c Fc. */
   IQBaseBand(double Fc, double width, size_t order, size_t sub_sample, double oFs=0.0)
-    : Sink<CScalar>(), Source(), FreqShiftBase<Scalar>(_Fc, 0),
+    : Sink<CScalar>(), Source(), FreqShiftBase<Scalar>(Fc, 0),
       _Fc(Fc), _Ff(Fc), _Fs(0), _width(width), _order(std::max(size_t(1), order)),
       _sub_sample(sub_sample), _oFs(oFs), _ring_offset(0), _sample_count(0),
       _last(0), _kernel(_order)
@@ -44,7 +44,7 @@ public:
 
   /** Constructor. */
   IQBaseBand(double Fc, double Ff, double width, size_t order, size_t sub_sample, double oFs=0.0)
-    : Sink<CScalar>(), Source(), FreqShiftBase<Scalar>(_Fc, 0),
+    : Sink<CScalar>(), Source(), FreqShiftBase<Scalar>(Fc, 0),
       _Fc(Fc), _Ff(Ff), _Fs(0), _width(width), _order(std::max(size_t(1), order)),
       _sub_sample(sub_sample), _oFs(oFs), _ring_offset(0), _sample_count(0),
       _last(0), _kernel(_order)
