@@ -8,7 +8,7 @@
 using namespace sdr;
 using namespace sdr::gui;
 
-SpectrumView::SpectrumView(Spectrum *spectrum, QWidget *parent)
+SpectrumView::SpectrumView(SpectrumProvider *spectrum, QWidget *parent)
   : QWidget(parent), _spectrum(spectrum), _numXTicks(11), _numYTicks(6),
     _maxF(std::numeric_limits<double>::infinity()), _mindB(-60)
 {

@@ -4,6 +4,7 @@
 #include "config.hh"
 #include "traits.hh"
 #include "node.hh"
+#include "operators.hh"
 
 namespace sdr {
 
@@ -95,7 +96,7 @@ protected:
 
 protected:
   /** The size of the LUT. */
-  static const size_t _lut_size = 127;
+  static const size_t _lut_size = 128;
 };
 
 

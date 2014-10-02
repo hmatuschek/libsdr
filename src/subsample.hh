@@ -247,11 +247,18 @@ public:
   }
 
   /** Performs the sub-sampling. */
-  virtual void process(const Buffer<iScalar> &buffer, bool allow_overwrite) {
+  virtual void process(const Buffer<iScalar> &buffer, bool allow_overwrite)
+  {
+    // Short cut
+    if (1 == _frac) {
+      this->send(buffer, allow_overwrite);
+      return;
+    }
+
     size_t i=0, o=0;
     while (i<buffer.size()) {
       // First, fill sampler...
-      while ( (_mu > 1) && (i<buffer.size()) ) {
+      while ( (_mu >= 1) && (i<buffer.size()) ) {
         _dl[_dl_idx] = _dl[_dl_idx+8] = buffer[i]; i++;
         _dl_idx = (_dl_idx + 1) % 8; _mu -= 1;
       }

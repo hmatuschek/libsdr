@@ -75,7 +75,7 @@ public:
    * @param spectrum Specifies the spectrum sink.
    * @param height Specifies the number of PSDs to display.
    * @param parent The parent widget. */
-  explicit WaterFallView(Spectrum *spectrum, size_t height=100, QWidget *parent = 0);
+  explicit WaterFallView(SpectrumProvider *spectrum, size_t height=100, QWidget *parent = 0);
 
 signals:
   void click(double f);
@@ -93,7 +93,7 @@ protected slots:
 
 protected:
   /** The spectrum sink. */
-  Spectrum *_spectrum;
+  SpectrumProvider *_spectrum;
   /** The size of the spectrum. */
   size_t _N;
   /** "Height of the spectrum. */

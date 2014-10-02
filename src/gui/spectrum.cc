@@ -5,8 +5,25 @@ using namespace sdr;
 using namespace sdr::gui;
 
 
+/* ********************************************************************************************* *
+ * SpectrumProvider
+ * ********************************************************************************************* */
+SpectrumProvider::SpectrumProvider(QObject *parent)
+  : QObject(parent)
+{
+  // pass...
+}
+
+SpectrumProvider::~SpectrumProvider() {
+  // pass...
+}
+
+
+/* ********************************************************************************************* *
+ * Spectrum
+ * ********************************************************************************************* */
 Spectrum::Spectrum(double rrate, size_t fftsize, size_t max_avg, QObject *parent) :
-  QObject(parent), _rrate(rrate), _fft_size(fftsize), _fft_buffer(fftsize),
+  SpectrumProvider(parent), _rrate(rrate), _fft_size(fftsize), _fft_buffer(fftsize),
   _compute(fftsize), _spectrum(fftsize), _sample_count(0), _N_samples(0),
   _trafo_count(0), _Ntrafo(max_avg),
   _samples_left(0), _input_type(Config::Type_UNDEFINED), _sample_rate(0)
@@ -69,6 +86,20 @@ Spectrum::isInputReal() const {
   return false;
 }
 
+double
+Spectrum::sampleRate() const {
+  return _sample_rate;
+}
+
+size_t
+Spectrum::fftSize() const {
+  return _fft_size;
+}
+
+const Buffer<double> &
+Spectrum::spectrum() const {
+  return _spectrum;
+}
 
 void
 Spectrum::handleBuffer(const RawBuffer &buffer, bool allow_overwrite)

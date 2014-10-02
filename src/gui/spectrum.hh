@@ -9,9 +9,39 @@
 namespace sdr {
 namespace gui {
 
+
+class SpectrumProvider: public QObject
+{
+  Q_OBJECT
+
+public:
+  SpectrumProvider(QObject *parent=0);
+
+  virtual ~SpectrumProvider();
+
+  /** Returns true if the input is real. */
+  virtual bool isInputReal() const = 0;
+
+  /** Retunrs the sample rate. */
+  virtual double sampleRate() const = 0;
+
+  /** Returns the FFT size. */
+  virtual size_t fftSize() const = 0;
+
+  /** Returns the current spectrum. */
+  virtual const Buffer<double> &spectrum() const = 0;
+
+signals:
+  /** Gets emitted once the spectrum was updated. */
+  void spectrumUpdated();
+  /** Gets emitted once the spectrum was reconfigured. */
+  void spectrumConfigured();
+};
+
+
 /** Calculates the power spectrum of a singnal. The spectrum gets updated with a specified
  * rate (if possible). */
-class Spectrum : public QObject, public SinkBase
+class Spectrum : public SpectrumProvider, public SinkBase
 {
   Q_OBJECT
 
@@ -36,20 +66,13 @@ public:
   bool isInputReal() const;
 
   /** Retunrs the sample rate. */
-  inline double sampleRate() const { return _sample_rate; }
+  double sampleRate() const;
 
   /** Returns the FFT size. */
-  inline size_t fftSize() const { return _fft_size; }
+  size_t fftSize() const;
 
   /** Returns the current spectrum. */
-  inline const Buffer<double> &spectrum() const { return _spectrum; }
-
-
-signals:
-  /** Gets emitted once the spectrum was updated. */
-  void spectrumUpdated();
-  /** Gets emitted once the spectrum was reconfigured. */
-  void spectrumConfigured();
+  const Buffer<double> &spectrum() const;
 
 protected:
   /** Updates the FFT in the _compute buffer. */
