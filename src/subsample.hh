@@ -234,22 +234,39 @@ public:
     for (size_t i=0; i<16; i++) { _dl[i] = 0; }
     _mu = 0;
 
+    LogMessage msg(LOG_DEBUG);
+    msg << "Configure InpolSubSampler node:" << std::endl
+        << " by: " << _frac << std::endl
+        << " type: " << src_cfg.type() << std::endl
+        << " sample-rate: " << src_cfg.sampleRate()
+        << " -> " << src_cfg.sampleRate()/_frac;
+    Logger::get().log(msg);
+
     // Propergate config
     this->setConfig(Config(Traits<oScalar>::scalarId, src_cfg.sampleRate()/_frac, bufSize, 1));
   }
 
   /** Performs the sub-sampling. */
-  virtual void process(const Buffer<iScalar> &buffer, bool allow_overwrite) {
+  virtual void process(const Buffer<iScalar> &buffer, bool allow_overwrite)
+  {
+    // Short cut
+    if (1 == _frac) {
+      this->send(buffer, allow_overwrite);
+      return;
+    }
+
     size_t i=0, o=0;
     while (i<buffer.size()) {
-      // Fill delay line
       // First, fill sampler...
-      while ( (_mu > 1) && (i<buffer.size()) ) {
+      while ( (_mu >= 1) && (i<buffer.size()) ) {
         _dl[_dl_idx] = _dl[_dl_idx+8] = buffer[i]; i++;
         _dl_idx = (_dl_idx + 1) % 8; _mu -= 1;
       }
-      // Interpolate
-      _buffer[o] = interpolate(_dl.sub(_dl_idx,8), _mu); _mu += _frac;
+      while (_mu <= 1) {
+        // Interpolate
+        _buffer[o] = interpolate(_dl.sub(_dl_idx,8), _mu);
+        _mu += _frac; o++;
+      }
     }
     this->send(_buffer.head(o));
   }

@@ -108,6 +108,7 @@ public:
   {
     // pass...
   }
+
   /** Destructor. */
   virtual ~USBDemod() {
     // pass...

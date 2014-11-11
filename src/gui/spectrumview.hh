@@ -18,7 +18,7 @@ Q_OBJECT
 
 public:
   /** @param rrate Specifies the (approx) refreshrate of the FFT plot. */
-  explicit SpectrumView(Spectrum *spectrum, QWidget *parent=0);
+  explicit SpectrumView(SpectrumProvider *spectrum, QWidget *parent=0);
 
   inline size_t numXTicks() const { return _numXTicks; }
   inline void setNumXTicks(size_t N) { _numXTicks=N; update(); }
@@ -51,7 +51,7 @@ protected:
 
 protected:
   /** Holds a weak reference to the spectrum recorder object. */
-  Spectrum *_spectrum;
+  SpectrumProvider *_spectrum;
   /// The font being used for axis labels
   QFont _axisFont;
   /// The plot area

@@ -203,9 +203,7 @@ WavSource::next()
   if ((0 == _frames_left)) {
     // Close file
     _file.close();
-    Logger::get().log(LogMessage(LOG_DEBUG, "WavSource: End of file -> stop queue."));
-    // and signal queue to stop
-    Queue::get().stop();
+    signalEOS();
     return;
   }
 

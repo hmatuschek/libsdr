@@ -73,7 +73,7 @@ LinearColorMap::map(const double &value) {
 /* ****************************************************************************************** *
  *  Implementation of WaterFallView
  * ****************************************************************************************** */
-WaterFallView::WaterFallView(Spectrum *spectrum, size_t height, QWidget *parent)
+WaterFallView::WaterFallView(SpectrumProvider *spectrum, size_t height, QWidget *parent)
   : QWidget(parent), _spectrum(spectrum), _N(_spectrum->fftSize()), _M(height), _waterfall(_N,_M)
 {
   setMinimumHeight(height);
