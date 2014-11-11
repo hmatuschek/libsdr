@@ -1,6 +1,8 @@
 IF(SDR_WITH_QT5 AND SDR_WITH_FFTW AND SDR_WITH_PORTAUDIO)
  add_executable(sdr_spec sdr_spec.cc)
  target_link_libraries(sdr_spec ${LIBS} ${QT_LIBRARIES} libsdr libsdr-gui )
+ add_executable(sdr_qrss sdr_qrss.cc)
+ target_link_libraries(sdr_qrss ${LIBS} ${QT_LIBRARIES} libsdr libsdr-gui )
 ENDIF(SDR_WITH_QT5 AND SDR_WITH_FFTW AND SDR_WITH_PORTAUDIO)
 
 IF(SDR_WITH_PORTAUDIO)
