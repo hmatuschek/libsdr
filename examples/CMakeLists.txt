@@ -15,9 +15,6 @@ IF(SDR_WITH_PORTAUDIO)
  add_executable(sdr_rec sdr_rec.cc)
  target_link_libraries(sdr_rec ${LIBS} libsdr)
 
- add_executable(sdr_wspr sdr_wspr.cc)
- target_link_libraries(sdr_wspr ${LIBS} libsdr)
-
  add_executable(sdr_afsk1200 sdr_afsk1200.cc)
  target_link_libraries(sdr_afsk1200 ${LIBS} libsdr)
 ENDIF(SDR_WITH_PORTAUDIO)
@@ -30,6 +27,4 @@ ENDIF(SDR_WITH_QT5 AND SDR_WITH_FFTW AND SDR_WITH_PORTAUDIO)
 add_executable(sdr_psk31 sdr_psk31.cc)
 target_link_libraries(sdr_psk31 ${LIBS} ${QT_LIBRARIES} libsdr libsdr-gui)
 
-add_executable(sdr_rtty sdr_rtty.cc)
-target_link_libraries(sdr_rtty ${LIBS} libsdr)
 
