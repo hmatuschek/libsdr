@@ -1,6 +1,7 @@
 #include "waterfallview.hh"
 #include <QPainter>
 #include <QPaintEvent>
+#include <QDebug>
 
 using namespace sdr;
 using namespace sdr::gui;
@@ -77,7 +78,17 @@ WaterFallView::WaterFallView(SpectrumProvider *spectrum, size_t hist, Direction 
   : QWidget(parent), _spectrum(spectrum), _N(_spectrum->fftSize()), _M(hist), _dir(dir),
     _waterfall(_N,_M)
 {
-  setMinimumHeight(hist);
+  switch (dir) {
+  case BOTTOM_UP:
+  case TOP_DOWN:
+    setMinimumHeight(hist);
+    break;
+  case LEFT_RIGHT:
+  case RIGHT_LEFT:
+    setMinimumWidth(hist);
+    break;
+  }
+
   // Fill waterfall pixmap
   _waterfall.fill(Qt::black);
   // Create color map
@@ -138,24 +149,27 @@ WaterFallView::paintEvent(QPaintEvent *evt) {
   QTransform trafo;
   switch (_dir) {
   case BOTTOM_UP:
-    trafo.scale(this->width()/qreal(_N), this->height()/qreal(_M));
+    trafo *= trafo.scale(this->width()/qreal(_N), this->height()/qreal(_M));
     break;
   case LEFT_RIGHT:
-    trafo.rotate(90);
     trafo.scale(this->width()/qreal(_M), this->height()/qreal(_N));
+    trafo.translate(_M,0);
+    trafo.rotate(90);
     break;
   case TOP_DOWN:
-    trafo.rotate(180);
     trafo.scale(this->width()/qreal(_N), this->height()/qreal(_M));
+    trafo.translate(_N,_M);
+    trafo.rotate(180);
     break;
   case RIGHT_LEFT:
-    trafo.rotate(270);
     trafo.scale(this->width()/qreal(_M), this->height()/qreal(_N));
+    trafo.translate(0,_N);
+    trafo.rotate(270);
     break;
   }
   painter.setTransform(trafo);
 
-  painter.drawPixmap(evt->rect(), _waterfall, evt->rect());
+  painter.drawPixmap(0,0, _waterfall);
   painter.restore();
 }
 
