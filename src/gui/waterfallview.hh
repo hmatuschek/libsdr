@@ -71,11 +71,16 @@ class WaterFallView : public QWidget
   Q_OBJECT
 
 public:
+  typedef enum {
+    BOTTOM_UP, TOP_DOWN, LEFT_RIGHT, RIGHT_LEFT
+  } Direction;
+
+public:
   /** Constructor.
    * @param spectrum Specifies the spectrum sink.
-   * @param height Specifies the number of PSDs to display.
+   * @param hist Specifies the number of PSDs to display.
    * @param parent The parent widget. */
-  explicit WaterFallView(SpectrumProvider *spectrum, size_t height=100, QWidget *parent = 0);
+  explicit WaterFallView(SpectrumProvider *spectrum, size_t hist=100, Direction dir=BOTTOM_UP, QWidget *parent = 0);
 
 signals:
   void click(double f);
@@ -98,6 +103,8 @@ protected:
   size_t _N;
   /** "Height of the spectrum. */
   size_t _M;
+  /** Specifies the direction of the waterfall. */
+  Direction _dir;
   /** The waterfall spectrogram. */
   QPixmap _waterfall;
   /** The color map to be used. */

@@ -73,10 +73,11 @@ LinearColorMap::map(const double &value) {
 /* ****************************************************************************************** *
  *  Implementation of WaterFallView
  * ****************************************************************************************** */
-WaterFallView::WaterFallView(SpectrumProvider *spectrum, size_t height, QWidget *parent)
-  : QWidget(parent), _spectrum(spectrum), _N(_spectrum->fftSize()), _M(height), _waterfall(_N,_M)
+WaterFallView::WaterFallView(SpectrumProvider *spectrum, size_t hist, Direction dir, QWidget *parent)
+  : QWidget(parent), _spectrum(spectrum), _N(_spectrum->fftSize()), _M(hist), _dir(dir),
+    _waterfall(_N,_M)
 {
-  setMinimumHeight(height);
+  setMinimumHeight(hist);
   // Fill waterfall pixmap
   _waterfall.fill(Qt::black);
   // Create color map
@@ -93,6 +94,7 @@ WaterFallView::WaterFallView(SpectrumProvider *spectrum, size_t height, QWidget 
 void
 WaterFallView::_onSpectrumUpdated() {
   if (_waterfall.isNull() || (_M==0) || (_N==0)) { return; }
+
   QPainter painter(&_waterfall);
   // scroll pixmap one pixel up
   QRect target(0,0, _N, _M-1), source(0,1,_N,_M-1);
@@ -131,8 +133,29 @@ void
 WaterFallView::paintEvent(QPaintEvent *evt) {
   QPainter painter(this);
   painter.save();
-  // Draw scaled pixmap
-  painter.drawPixmap(evt->rect(), _waterfall.scaled(this->width(), this->height()), evt->rect());
+
+  // Draw transformed pixmap
+  QTransform trafo;
+  switch (_dir) {
+  case BOTTOM_UP:
+    trafo.scale(this->width()/qreal(_N), this->height()/qreal(_M));
+    break;
+  case LEFT_RIGHT:
+    trafo.rotate(90);
+    trafo.scale(this->width()/qreal(_M), this->height()/qreal(_N));
+    break;
+  case TOP_DOWN:
+    trafo.rotate(180);
+    trafo.scale(this->width()/qreal(_N), this->height()/qreal(_M));
+    break;
+  case RIGHT_LEFT:
+    trafo.rotate(270);
+    trafo.scale(this->width()/qreal(_M), this->height()/qreal(_N));
+    break;
+  }
+  painter.setTransform(trafo);
+
+  painter.drawPixmap(evt->rect(), _waterfall, evt->rect());
   painter.restore();
 }
 
