@@ -144,7 +144,7 @@ void
 WaterFallView::paintEvent(QPaintEvent *evt) {
   QPainter painter(this);
   painter.save();
-
+  painter.setRenderHints(QPainter::SmoothPixmapTransform);
   // Draw transformed pixmap
   QTransform trafo;
   switch (_dir) {
