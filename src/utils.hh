@@ -644,17 +644,17 @@ public:
       case Config::Type_s8:
       case Config::Type_cu8:
       case Config::Type_cs8:
-        _target = 127; break;
+        _target = 64; break;
       case Config::Type_u16:
       case Config::Type_s16:
       case Config::Type_cu16:
       case Config::Type_cs16:
-        _target = 32000; break;
+        _target = 16000; break;
       case Config::Type_f32:
       case Config::Type_f64:
       case Config::Type_cf32:
       case Config::Type_cf64:
-        _target = 1.; break;
+        _target = 0.5; break;
       case Config::Type_UNDEFINED: {
         ConfigError err; err << "Can not configure AGC node: Unsupported type."; throw err;
       }
