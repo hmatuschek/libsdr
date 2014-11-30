@@ -154,15 +154,19 @@ WaterFallView::mouseReleaseEvent(QMouseEvent *evt) {
 }
 
 void
-WaterFallView::paintEvent(QPaintEvent *evt) {
+WaterFallView::paintEvent(QPaintEvent *evt)
+{
+  QWidget::paintEvent(evt);
+
   QPainter painter(this);
+
   painter.save();
   painter.setRenderHints(QPainter::SmoothPixmapTransform);
   // Draw transformed pixmap
   QTransform trafo;
   switch (_dir) {
   case BOTTOM_UP:
-    trafo *= trafo.scale(this->width()/qreal(_N), this->height()/qreal(_M));
+    trafo.scale(this->width()/qreal(_N), this->height()/qreal(_M));
     break;
   case LEFT_RIGHT:
     trafo.scale(this->width()/qreal(_M), this->height()/qreal(_N));
