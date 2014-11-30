@@ -114,7 +114,13 @@ WaterFallView::_onSpectrumUpdated() {
   // Draw new spectrum
   for (size_t i=0; i<_N; i++) {
     int idx = (_spectrum->fftSize()/2+i) % _spectrum->fftSize();
-    double value = 10*log10(_spectrum->spectrum()[idx])-10*log10(_N);
+    double value;
+    if ((TOP_DOWN == _dir) || (RIGHT_LEFT == _dir)) {
+      value = 10*log10(_spectrum->spectrum()[_spectrum->fftSize()-1-idx])-10*log10(_N);
+    } else {
+      value = 10*log10(_spectrum->spectrum()[idx])-10*log10(_N);
+    }
+    // Reset NaNs
     if (value != value) { value = 0; }
     painter.setPen((*_colorMap)(value));
     painter.drawPoint(i, _M-1);
