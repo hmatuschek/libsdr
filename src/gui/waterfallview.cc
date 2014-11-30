@@ -136,12 +136,19 @@ WaterFallView::mouseReleaseEvent(QMouseEvent *evt) {
   if ((evt->pos().x() < 0) || (evt->pos().x() > this->width())) { return; }
   double f=0;
 
-  double dfdx = _spectrum->sampleRate()/this->width();
-  f = -_spectrum->sampleRate()/2 + dfdx*evt->pos().x();
-  emit click(f);
+  if ((BOTTOM_UP == _dir) || (TOP_DOWN == _dir)) {
+    double dfdx = _spectrum->sampleRate()/this->width();
+    f = -_spectrum->sampleRate()/2 + dfdx*evt->pos().x();
+    emit click(f);
+  } else {
+    double dfdx = _spectrum->sampleRate()/this->height();
+    f = -_spectrum->sampleRate()/2 + dfdx*evt->pos().y();
+    emit click(f);
+  }
 
   // Forward to default impl:
   QWidget::mouseReleaseEvent(evt);
+
   // redraw
   this->update();
 }
