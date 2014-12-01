@@ -113,7 +113,7 @@ WaterFallView::_onSpectrumUpdated() {
 
   // Draw new spectrum
   for (size_t i=0; i<_N; i++) {
-    int idx = (_spectrum->fftSize()/2+i) % _spectrum->fftSize();
+    int idx = (_N/2+i) % _N;
     double value = 10*log10(_spectrum->spectrum()[idx])-10*log10(_N);
     if (value != value) { value = 0; }
     painter.setPen((*_colorMap)(value));
@@ -144,12 +144,12 @@ void
 WaterFallView::paintEvent(QPaintEvent *evt) {
   QPainter painter(this);
   painter.save();
-  painter.setRenderHints(QPainter::SmoothPixmapTransform);
-  // Draw transformed pixmap
+  painter.setRenderHints(QPainter::SmoothPixmapTransform|QPainter::Antialiasing);
+  // Assemble trafo
   QTransform trafo;
   switch (_dir) {
   case BOTTOM_UP:
-    trafo *= trafo.scale(this->width()/qreal(_N), this->height()/qreal(_M));
+    trafo.scale(qreal(this->width())/_N, qreal(this->height())/_M);
     break;
   case LEFT_RIGHT:
     trafo.scale(this->width()/qreal(_M), this->height()/qreal(_N));
@@ -168,8 +168,14 @@ WaterFallView::paintEvent(QPaintEvent *evt) {
     break;
   }
   painter.setTransform(trafo);
-
-  painter.drawPixmap(0,0, _waterfall);
+  QRect exposedRect = painter.matrix().inverted()
+      .mapRect(evt->rect())
+      .adjusted(-1, -1, 1, 1);
+  qDebug() << "Draw " << QRect(0,0,_N,_M) << " at "
+           << painter.matrix().mapRect(QRect(0,0,_N,_M));
+  // the adjust is to account for half pixels along edges
+  painter.drawPixmap(exposedRect, _waterfall, exposedRect);
+  //painter.drawPixmap(0,0, _waterfall);
   painter.restore();
 }
 
