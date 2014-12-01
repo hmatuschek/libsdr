@@ -161,8 +161,8 @@ WaterFallView::paintEvent(QPaintEvent *evt)
   QPainter painter(this);
 
   painter.save();
-  painter.setRenderHints(QPainter::SmoothPixmapTransform);
-  // Draw transformed pixmap
+  painter.setRenderHints(QPainter::SmoothPixmapTransform|QPainter::Antialiasing);
+  // Assemble trafo
   QTransform trafo;
   switch (_dir) {
   case BOTTOM_UP:
@@ -185,8 +185,14 @@ WaterFallView::paintEvent(QPaintEvent *evt)
     break;
   }
   painter.setTransform(trafo);
-
-  painter.drawPixmap(0,0, _waterfall);
+  QRect exposedRect = painter.matrix().inverted()
+      .mapRect(evt->rect())
+      .adjusted(-1, -1, 1, 1);
+  qDebug() << "Draw " << QRect(0,0,_N,_M) << " at "
+           << painter.matrix().mapRect(QRect(0,0,_N,_M));
+  // the adjust is to account for half pixels along edges
+  painter.drawPixmap(exposedRect, _waterfall, exposedRect);
+  //painter.drawPixmap(0,0, _waterfall);
   painter.restore();
 }
 
