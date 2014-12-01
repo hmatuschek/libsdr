@@ -90,10 +90,10 @@ public:
     // If no conversion is selected
     if (0 == _cast) { return; }
     // If the identity conversion is selected -> forward buffer
-    if (_identity == _cast) { this->send(buffer, allow_overwrite); }
+    if (_identity == _cast) { this->send(buffer, allow_overwrite); return; }
     // Otherwise cast
     size_t bytes = _cast(buffer, _buffer);
-    this->send(RawBuffer(_buffer, 0, bytes), true);
+    this->send(RawBuffer(_buffer, 0, bytes), false);
   }
 
 
@@ -106,7 +106,7 @@ protected:
 protected:
   /** Performs no cast at all. */
   static size_t _identity(const RawBuffer &in, const RawBuffer &out) {
-    memcpy(out.data(), in.data(), in.bytesLen());
+    memcpy(out.ptr(), in.data(), in.bytesLen());
     return in.bytesLen();
   }
 
