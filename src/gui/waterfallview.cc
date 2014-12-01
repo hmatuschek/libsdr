@@ -113,8 +113,14 @@ WaterFallView::_onSpectrumUpdated() {
 
   // Draw new spectrum
   for (size_t i=0; i<_N; i++) {
-    int idx = (_N/2+i) % _N;
-    double value = 10*log10(_spectrum->spectrum()[idx])-10*log10(_N);
+    int idx = (_spectrum->fftSize()/2+i) % _spectrum->fftSize();
+    double value;
+    if ((TOP_DOWN == _dir) || (RIGHT_LEFT == _dir)) {
+      value = 10*log10(_spectrum->spectrum()[_spectrum->fftSize()-1-idx])-10*log10(_N);
+    } else {
+      value = 10*log10(_spectrum->spectrum()[idx])-10*log10(_N);
+    }
+    // Reset NaNs
     if (value != value) { value = 0; }
     painter.setPen((*_colorMap)(value));
     painter.drawPoint(i, _M-1);
@@ -141,15 +147,19 @@ WaterFallView::mouseReleaseEvent(QMouseEvent *evt) {
 }
 
 void
-WaterFallView::paintEvent(QPaintEvent *evt) {
+WaterFallView::paintEvent(QPaintEvent *evt)
+{
+  QWidget::paintEvent(evt);
+
   QPainter painter(this);
+
   painter.save();
   painter.setRenderHints(QPainter::SmoothPixmapTransform|QPainter::Antialiasing);
   // Assemble trafo
   QTransform trafo;
   switch (_dir) {
   case BOTTOM_UP:
-    trafo.scale(qreal(this->width())/_N, qreal(this->height())/_M);
+    trafo.scale(this->width()/qreal(_N), this->height()/qreal(_M));
     break;
   case LEFT_RIGHT:
     trafo.scale(this->width()/qreal(_M), this->height()/qreal(_N));
