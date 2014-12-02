@@ -5,6 +5,7 @@
 #include <map>
 #include "buffer.hh"
 #include <pthread.h>
+#include <iostream>
 
 
 namespace sdr {
@@ -17,6 +18,7 @@ class DelegateInterface {
 public:
   /** Call back interface. */
   virtual void operator() () = 0;
+  virtual void *instance() = 0;
 };
 
 /** Specific delegate to a method of an object . */
@@ -30,6 +32,8 @@ public:
   virtual ~Delegate() {}
   /** Callback, simply calls the method of the instance given to the constructor. */
   virtual void operator() () { (_instance->*_function)(); }
+  virtual void *instance() { return _instance; }
+
 protected:
   /** The instance. */
   T *_instance;
@@ -122,10 +126,34 @@ public:
     _idle.push_back(new Delegate<T>(instance, function));
   }
 
+  template <class T>
+  void remIdle(T *instance) {
+    std::list<DelegateInterface *>::iterator item = _idle.begin();
+    while (item != _idle.end()) {
+      if ( (*item)->instance() == ((void *)instance)) {
+        item = _idle.erase(item);
+      } else {
+        item++;
+      }
+    }
+  }
+
   /** Adds a callback to the start event. The method gets called once the queue loop is started. */
   template <class T>
   void addStart(T *instance, void (T::*function)(void)) {
     _onStart.push_back(new Delegate<T>(instance, function));
+  }
+
+  template <class T>
+  void remStart(T *instance) {
+    std::list<DelegateInterface *>::iterator item = _onStart.begin();
+    while (item != _onStart.end()) {
+      if ( (*item)->instance() == ((void *)instance)) {
+        item = _onStart.erase(item);
+      } else {
+        item++;
+      }
+    }
   }
 
   /** Adds a callback to the stop event. The method gets called once the queue loop is stopped. */
@@ -134,6 +162,17 @@ public:
     _onStop.push_back(new Delegate<T>(instance, function));
   }
 
+  template <class T>
+  void remStop(T *instance) {
+    std::list<DelegateInterface *>::iterator item = _onStop.begin();
+    while (item != _onStop.end()) {
+      if ( (*item)->instance() == ((void *)instance)) {
+        item = _onStop.erase(item);
+      } else {
+        item++;
+      }
+    }
+  }
 
 protected:
   /** The actual queue loop. */

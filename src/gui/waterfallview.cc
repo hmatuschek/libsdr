@@ -188,8 +188,6 @@ WaterFallView::paintEvent(QPaintEvent *evt)
   QRect exposedRect = painter.matrix().inverted()
       .mapRect(evt->rect())
       .adjusted(-1, -1, 1, 1);
-  qDebug() << "Draw " << QRect(0,0,_N,_M) << " at "
-           << painter.matrix().mapRect(QRect(0,0,_N,_M));
   // the adjust is to account for half pixels along edges
   painter.drawPixmap(exposedRect, _waterfall, exposedRect);
   //painter.drawPixmap(0,0, _waterfall);
