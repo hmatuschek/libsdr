@@ -13,10 +13,12 @@ if(SDR_WITH_PORTAUDIO)
   set(LIBSDR_SOURCES ${LIBSDR_SOURCES} portaudio.cc)
   set(LIBSDR_HEADERS ${LIBSDR_HEADERS} portaudio.hh)
 endif(SDR_WITH_PORTAUDIO)
+
 if(SDR_WITH_FFTW)
   set(LIBSDR_SOURCES ${LIBSDR_SOURCES})
   set(LIBSDR_HEADERS ${LIBSDR_HEADERS} fftplan_fftw3.hh)
 endif(SDR_WITH_FFTW)
+
 if(SDR_WITH_RTLSDR)
   set(LIBSDR_SOURCES ${LIBSDR_SOURCES} rtlsource.cc)
   set(LIBSDR_HEADERS ${LIBSDR_HEADERS} rtlsource.hh)
@@ -27,7 +29,15 @@ add_custom_target(libsdr_hdrs SOURCES ${LIBSDR_HEADERS})
 add_library(libsdr SHARED ${LIBSDR_SOURCES})
 set_target_properties(libsdr PROPERTIES OUTPUT_NAME sdr)
 set_target_properties(libsdr PROPERTIES DEPENDS libsdr_hdrs)
+set_target_properties(libsdr PROPERTIES VERSION
+  "${libsdr_VERSION_MAJOR}.${libsdr_VERSION_MINOR}.${libsdr_VERSION_PATCH}")
+set_target_properties(libsdr PROPERTIES SOVERION "${libsdr_VERSION_MAJOR}")
 target_link_libraries(libsdr ${LIBS})
+
+install(TARGETS libsdr DESTINATION ${CMAKE_INSTALL_LIBDIR})
+INSTALL_HEADERS_WITH_DIRECTORY("${LIBSDR_HEADERS}" "${CMAKE_INSTALL_INCLUDEDIR}/libsdr")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/config.hh"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libsdr")
 
 if(SDR_WITH_FFTW AND SDR_WITH_QT5)
   set(libsdr_gui_SOURCES gui/spectrum.cc gui/spectrumview.cc gui/waterfallview.cc)
@@ -37,6 +47,12 @@ if(SDR_WITH_FFTW AND SDR_WITH_QT5)
 
   add_library(libsdr-gui SHARED ${libsdr_gui_SOURCES} ${libsdr_gui_MOC_SOURCES})
   set_target_properties(libsdr-gui PROPERTIES OUTPUT_NAME sdr-gui)
+  set_target_properties(libsdr-gui PROPERTIES VERSION
+    "${libsdr_VERSION_MAJOR}.${libsdr_VERSION_MINOR}.${libsdr_VERSION_PATCH}")
+  set_target_properties(libsdr-gui PROPERTIES SOVERION "${libsdr_VERSION_MAJOR}")
   target_link_libraries(libsdr-gui libsdr ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES})
+
+  install(TARGETS libsdr-gui DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  INSTALL_HEADERS_WITH_DIRECTORY("${libsdr_gui_HEADERS}" "${CMAKE_INSTALL_INCLUDEDIR}/libsdr")
 endif(SDR_WITH_FFTW AND SDR_WITH_QT5)
 

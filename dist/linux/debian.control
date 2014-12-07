@@ -1,0 +1,14 @@
+Source: libsdr
+Priority: extra
+Maintainer: Hannes Matuschek <hmatuschek@gmail.com>
+Build-Depends: cdbs (>= 0.4.51), dh-exec, debhelper (>= 8.0.0), cmake, qtbase5-dev (>= 5.0), portaudio19-dev, librtlsdr-dev, fftw3-dev
+Standards-Version: 3.9.2
+Section: hamradio
+Homepage: http://github.com/hmatuschek/libsdr
+
+Package: libsdr
+Section: hamradio
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: libsdr
+  A C++ library for software defined radio.
