@@ -7,7 +7,7 @@ set(LIBSDR_HEADERS sdr.hh math.hh
     buffer.hh node.hh queue.hh buffernode.hh filternode.hh traits.hh autocast.hh
     siggen.hh portaudio.hh utils.hh wavfile.hh demod.hh firfilter.hh
     fftplan.hh fftplan_native.hh exception.hh baseband.hh freqshift.hh subsample.hh
-    combine.hh logger.hh psk31.hh interpolate.hh)
+    combine.hh logger.hh psk31.hh interpolate.hh operators.hh)
 
 if(SDR_WITH_PORTAUDIO)
   set(LIBSDR_SOURCES ${LIBSDR_SOURCES} portaudio.cc)
