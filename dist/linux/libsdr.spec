@@ -11,8 +11,8 @@ Source: libsdr-%{version}.tar.gz
 URL: https://github.com/hmatuschek/libsdr
 Version: %{version}
 Buildroot: /tmp/libsdrrpm
-BuildRequires: gcc-c++, cmake, portaudio-devel, fftw3-devel, librtlsdr-devel
-Requires: portaudio, fftw3, librtlsdr-devel
+BuildRequires: gcc-c++, cmake, portaudio-devel, fftw3-devel, rtl-sdr-devel
+Requires: portaudio, fftw3, rtl-sdr
 %if 0%{?suse_version}
 BuildRequires: libqt5-qtbase-devel
 Requires: libqt5-qtbase 
@@ -29,8 +29,8 @@ A simple C++ library for software defined radios.
 %package -n libsdr-devel
 Summary: A C++ library for software defined radios
 Group: Development/Libraries/C and C++
-BuildRequires: gcc-c++, cmake, portaudio-devel, fftw3-devel, librtlsdr-devel
-Requires: portaudio, fftw3, librtlsdr
+BuildRequires: gcc-c++, cmake, portaudio-devel, fftw3-devel, rtl-sdr-devel
+Requires: portaudio, fftw3, rtl-sdr
 %if 0%{?suse_version}
 BuildRequires: libqt5-qtbase-devel
 Requires: libqt5-qtbase 
