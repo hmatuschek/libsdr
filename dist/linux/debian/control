@@ -12,3 +12,10 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: libsdr
   A C++ library for software defined radio.
+
+Package: libsdr-dev
+Section: hamradio
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: libsdr
+  A C++ library for software defined radio. Development files.
