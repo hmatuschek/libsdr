@@ -32,6 +32,8 @@ set_target_properties(libsdr PROPERTIES DEPENDS libsdr_hdrs)
 set_target_properties(libsdr PROPERTIES VERSION
   "${libsdr_VERSION_MAJOR}.${libsdr_VERSION_MINOR}.${libsdr_VERSION_PATCH}")
 set_target_properties(libsdr PROPERTIES SOVERION "${libsdr_VERSION_MAJOR}")
+set_target_properties(libsdr PROPERTIES MACOSX_RPATH ${CMAKE_INSTALL_RPATH})
+set_target_properties(libsdr PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 target_link_libraries(libsdr ${LIBS})
 
 install(TARGETS libsdr DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -50,6 +52,8 @@ if(SDR_WITH_FFTW AND SDR_WITH_QT5)
   set_target_properties(libsdr-gui PROPERTIES VERSION
     "${libsdr_VERSION_MAJOR}.${libsdr_VERSION_MINOR}.${libsdr_VERSION_PATCH}")
   set_target_properties(libsdr-gui PROPERTIES SOVERION "${libsdr_VERSION_MAJOR}")
+  set_target_properties(libsdr-gui PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
+  set_target_properties(libsdr-gui PROPERTIES MACOSX_RPATH ${CMAKE_INSTALL_RPATH})
   target_link_libraries(libsdr-gui libsdr ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES})
 
   install(TARGETS libsdr-gui DESTINATION ${CMAKE_INSTALL_LIBDIR})
