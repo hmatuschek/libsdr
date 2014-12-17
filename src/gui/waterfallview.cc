@@ -132,7 +132,6 @@ WaterFallView::_onSpectrumUpdated() {
 
 void
 WaterFallView::_onSpectrumConfigure() {
-  std::cerr << "Reset waterfall pixmap..." << std::endl;
   // Update spectrum width
   _N = _spectrum->fftSize();
   // Replace WaterFall pixmap
