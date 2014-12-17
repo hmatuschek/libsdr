@@ -95,6 +95,8 @@ protected:
 protected slots:
   /** Gets called once a new PSD is available. */
   void _onSpectrumUpdated();
+  /** Gets called once the spectrum provider gets reconfigured. */
+  void _onSpectrumConfigure();
 
 protected:
   /** The spectrum sink. */

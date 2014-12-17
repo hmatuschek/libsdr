@@ -99,7 +99,7 @@ WaterFallView::WaterFallView(SpectrumProvider *spectrum, size_t hist, Direction 
 
   // Get notified once a new spectrum is available:
   QObject::connect(_spectrum, SIGNAL(spectrumUpdated()), this, SLOT(_onSpectrumUpdated()));
-  QObject::connect(_spectrum, SIGNAL(spectrumConfigured()), this, SLOT(update()));
+  QObject::connect(_spectrum, SIGNAL(spectrumConfigured()), this, SLOT(_onSpectrumConfigure()));
 }
 
 void
@@ -125,6 +125,20 @@ WaterFallView::_onSpectrumUpdated() {
     painter.setPen((*_colorMap)(value));
     painter.drawPoint(i, _M-1);
   }
+
+  // Trigger update
+  this->update();
+}
+
+void
+WaterFallView::_onSpectrumConfigure() {
+  std::cerr << "Reset waterfall pixmap..." << std::endl;
+  // Update spectrum width
+  _N = _spectrum->fftSize();
+  // Replace WaterFall pixmap
+  _waterfall = QPixmap(_N, _M);
+  // Fill waterfall pixmap
+  _waterfall.fill(Qt::black);
 
   // Trigger update
   this->update();

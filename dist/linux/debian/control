@@ -16,6 +16,6 @@ Description: libsdr
 Package: libsdr-dev
 Section: hamradio
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libsdr
 Description: libsdr
   A C++ library for software defined radio. Development files.
