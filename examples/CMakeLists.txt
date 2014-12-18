@@ -15,6 +15,10 @@ IF(SDR_WITH_PORTAUDIO)
 
  add_executable(sdr_afsk1200 sdr_afsk1200.cc)
  target_link_libraries(sdr_afsk1200 ${LIBS} libsdr)
+
+ qt5_wrap_cpp(sdr_schumann_MOC_SOURCES schumann.hh)
+ add_executable(sdr_schumann sdr_schumann.cc schumann.cc ${sdr_schumann_MOC_SOURCES})
+ target_link_libraries(sdr_schumann ${LIBS} libsdr libsdr-gui)
 ENDIF(SDR_WITH_PORTAUDIO)
 
 IF(SDR_WITH_QT5 AND SDR_WITH_FFTW AND SDR_WITH_PORTAUDIO)
