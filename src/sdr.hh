@@ -14,37 +14,38 @@
  * request further data from the sources once all present data has been processed. It also
  * routes the date from the sources to the sinks.
  *
+ * \section intro A practical introduction
  * The following examples shows a trivial application that recods some audio from the systems
  * default audio source and play it back.
  * \code
- *  #include <libsdr/sdr.hh>
+ * #include <libsdr/sdr.hh>
  *
- *  int main(int argc, char *argv[]) {
- *    // Initialize PortAudio system
- *    sdr::PortAudio::init();
+ * int main(int argc, char *argv[]) {
+ *   // Initialize PortAudio system
+ *   sdr::PortAudio::init();
  *
- *    // Create an audio source using PortAudio
- *    sdr::PortSource<int16_t> source(44.1e3);
- *    // Create an audio sink using PortAudio
- *    sdr::PortSink sink;
+ *   // Create an audio source using PortAudio
+ *   sdr::PortSource<int16_t> source(44.1e3);
+ *   // Create an audio sink using PortAudio
+ *   sdr::PortSink sink;
  *
- *    // Connect them
- *    source.connect(&sink);
+ *   // Connect them
+ *   source.connect(&sink);
  *
- *    // Read new data from audio sink if queue is idle
- *    sdr::Queue::get().addIdle(&source, &sdr::PortSource<int16_t>::next);
+ *   // Read new data from audio sink if queue is idle
+ *   sdr::Queue::get().addIdle(&source, &sdr::PortSource<int16_t>::next);
  *
- *    // Get and start queue
- *    sdr::Queue::get().start();
- *    // Wait for queue to stop
- *    sdr::Queue::get().wait();
+ *   // Get and start queue
+ *   sdr::Queue::get().start();
+ *   // Wait for queue to stop
+ *   sdr::Queue::get().wait();
  *
- *    // Terminate PortAudio system
- *    sdr::PortAudio::terminate();
+ *   // Terminate PortAudio system
+ *   sdr::PortAudio::terminate();
  *
- *    // done.
- *    return 0;
- *  }
+ *   // done.
+ *   return 0;
+ * }
  * \endcode
  *
  * First, the PortAudio system gets initialized.
@@ -73,6 +74,192 @@
  *
  * The queue can be stopped by calling the @c sdr::Queue::stop method. This can be implemented for
  * this example by the means of process signals.
+ *
+ * \code
+ * #include <signal.h>
+ * ...
+ *
+ * static void __sigint_handler(int signo) {
+ *   // On SIGINT -> stop queue properly
+ *   sdr::Queue::get().stop();
+ * }
+ *
+ * int main(int argc, char *argv[]) {
+ *   // Register signal handler
+ *   signal(SIGINT, __sigint_handler);
+ *   ...
+ * }
+ * \endcode
+ *
+ * Whenever a SIGINT is send to the process, i.e. by pressing CTRL+C, the @c sdr::Queue::stop method
+ * gets called. This will cause the processing thread of the queue to exit and the call to
+ * @c sdr::Queue::wait to return.
+ *
+ * \subsection example2 Queue less operation
+ * Sometimes, the queue is simply not needed. This is particularily the case if the data processing
+ * can happen in the main thread, i.e. if there is not GUI. The example above can be implemented
+ * without the Queue, as the main thread is just waiting for the processing thread to exit.
+ *
+ * \code
+ * #include <libsdr/sdr.hh>
+ *
+ * int main(int argc, char *argv[]) {
+ *   // Initialize PortAudio system
+ *   sdr::PortAudio::init();
+ *
+ *   // Create an audio source using PortAudio
+ *   sdr::PortSource<int16_t> source(44.1e3);
+ *   // Create an audio sink using PortAudio
+ *   sdr::PortSink sink;
+ *
+ *   // Connect them directly
+ *   source.connect(&sink, true);
+ *
+ *   // Loop to infinity7
+ *   while(true) { source.next(); }
+ *
+ *   // Terminate PortAudio system
+ *   sdr::PortAudio::terminate();
+ *
+ *   // done.
+ *   return 0;
+ * }
+ * \endcode
+ *
+ * The major difference between the first example and this one, is the way how the nodes are
+ * connected. The @c sdr::Source::connect method takes an optional argument specifying wheter the
+ * source is connected directly to the sink or not. If @c false (the default) is specified, the
+ * data of the source will be send to the Queue first. In a direct connection (passing @c true), the
+ * source will send the data directly to the sink, bypassing the queue.
+ *
+ * Instead of starting the processing thread of the queue, here the main thread is doing all the
+ * work by calling the @c next mehtod of the audio source.
+ *
+ * \subsection logging Log messages
+ * During configuration and operation, processing nodes will send log messages of different levels
+ * (DEBUG, INFO, WARNING, ERROR), which allow to debug the operation of the complete processing
+ * chain. These log messages are passed around using the build-in @c sdr::Logger class. To make
+ * them visible, a log handler must be installed.
+ *
+ * \code
+ * int main(int argc, char *argv[]) {
+ *   ...
+ *   // Install the log handler...
+ *   sdr::Logger::get().addHandler(
+ *       new sdr::StreamLogHandler(std::cerr, sdr::LOG_DEBUG));
+ *   ...
+ * }
+ * \endcode
+ *
+ * Like the @c sdr::Queue, the logger is also a singleton object, which can be obtained by
+ * @c sdr::Logger::get. By calling @c sdr::Logger::addHandler, a new message handler is installed.
+ * In this example, a @c sdr::StreamLogHandler instance is installed, which serializes the
+ * log messages into @c std::cerr.
+ *
+ * \subsection intro_summary In summary
+ * In summary, the complete example above using the queue including a singal handler to properly
+ * terminate the application by SIGINT and a log handler will look like
+ *
+ * \code
+ * #include <libsdr/sdr.hh>
+ * #include <signal.h>
+ *
+ * static void __sigint_handler(int signo) {
+ *   // On SIGINT -> stop queue properly
+ *   sdr::Queue::get().stop();
+ * }
+ *
+ * int main(int argc, char *argv[]) {
+ *   // Register signal handler
+ *   signal(SIGINT, __sigint_handler);
+ *
+ *   // Initialize PortAudio system
+ *   sdr::PortAudio::init();
+ *
+ *   // Create an audio source using PortAudio
+ *   sdr::PortSource<int16_t> source(44.1e3);
+ *   // Create an audio sink using PortAudio
+ *   sdr::PortSink sink;
+ *
+ *   // Connect them
+ *   source.connect(&sink);
+ *
+ *   // Read new data from audio sink if queue is idle
+ *   sdr::Queue::get().addIdle(&source, &sdr::PortSource<int16_t>::next);
+ *
+ *   // Get and start queue
+ *   sdr::Queue::get().start();
+ *   // Wait for queue to stop
+ *   sdr::Queue::get().wait();
+ *
+ *   // Terminate PortAudio system
+ *   sdr::PortAudio::terminate();
+ *
+ *   // done.
+ *   return 0;
+ * }
+ * \endcode
+ * This may appear quiet bloated for such a simple application. I designed the library to be rather
+ * explicit. No feature is implicit and hidden from the user. This turns simple examples like the
+ * one above quite bloated but it is imediately clear how the example works whithout any knowledge
+ * of "hidden features" and the complexity does not suddenly increases for non-trivial examples.
+ *
+ * Finally, we may have a look at a more relaistic example implementing a FM broadcast receiver
+ * using a RTL2832 based USB dongle as the input source.
+ * \code
+ * #include <libsdr/sdr.hh>
+ * #include <signal.h>
+ *
+ * static void __sigint_handler(int signo) {
+ *   // On SIGINT -> stop queue properly
+ *   sdr::Queue::get().stop();
+ * }
+ *
+ * int main(int argc, char *argv[]) {
+ *   // Register signal handler
+ *   signal(SIGINT, __sigint_handler);
+ *
+ *   // Initialize PortAudio system
+ *   sdr::PortAudio::init();
+ *
+ *   // Frequency of the FM station (in Hz)
+ *   double freq = 100e6;
+ *
+ *   // Create a RTL2832 input node
+ *   sdr::RTLSource src(freq);
+ *   // Filter 100kHz around the center frequency (0) with an 16th order FIR filter and
+ *   // subsample the result to a sample rate of approx. 100kHz.
+ *   sdr::IQBaseBand<int8_t> baseband(0, 100e3, 16, 0, 100e3);
+ *   // FM demodulator, takes a complex int8_t stream and returns a real int16_t stream
+ *   sdr::FMDemod<int8_t, int16_t> demod;
+ *   // Deemphesize the result (actually part of the demodulation)
+ *   sdr::FMDeemph<int16_t> deemph;
+ *   // Playback the final signal
+ *   sdr::PortSink sink;
+ *
+ *   // Connect signals
+ *   src.connect(&baseband, true);
+ *   baseband.connect(&demod);
+ *   demod.connect(&deemph);
+ *   deemph.connect(&sink);
+ *
+ *   // Connect start and stop signals of Queue to RTL2832 source
+ *   sdr::Queue::get().addStart(&src, &sdr::RTLSource::start);
+ *   sdr::Queue::get().addStop(&src, &sdr::RTLSource::stop);
+ *
+ *   // Start queue
+ *   sdr::Queue::get().start();
+ *   // Wait for queue
+ *   sdr::Queue::get().wait();
+ *
+ *   // Terminate PortAudio system
+ *   sdr::PortAudio::terminate();
+ *
+ *   // Done...
+ *   return 0;
+ * }
+ * \endcode
+ *
  */
 
 #ifndef __SDR_HH__
@@ -91,12 +278,18 @@
 #include "options.hh"
 
 #include "utils.hh"
-#include "demod.hh"
 #include "siggen.hh"
 #include "buffernode.hh"
 #include "wavfile.hh"
 #include "firfilter.hh"
 #include "autocast.hh"
+#include "freqshift.hh"
+#include "interpolate.hh"
+#include "subsample.hh"
+#include "baseband.hh"
+
+#include "demod.hh"
+#include "psk31.hh"
 
 #ifdef SDR_WITH_FFTW
 #include "filternode.hh"

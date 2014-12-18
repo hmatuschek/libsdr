@@ -75,8 +75,7 @@ Source::send(const RawBuffer &buffer, bool allow_overwrite) {
       allow_overwrite = allow_overwrite && (1 == _sinks.size());
       // Call sink directly
       item->first->handleBuffer(buffer, allow_overwrite);
-    }
-    else {
+    } else {
       // otherwise, queue buffer
       allow_overwrite = allow_overwrite && (1 == _sinks.size());
       Queue::get().send(buffer, item->first, allow_overwrite);

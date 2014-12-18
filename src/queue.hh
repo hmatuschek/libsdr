@@ -18,6 +18,7 @@ class DelegateInterface {
 public:
   /** Call back interface. */
   virtual void operator() () = 0;
+  /** Returns the instance of the delegate. */
   virtual void *instance() = 0;
 };
 
@@ -32,6 +33,7 @@ public:
   virtual ~Delegate() {}
   /** Callback, simply calls the method of the instance given to the constructor. */
   virtual void operator() () { (_instance->*_function)(); }
+  /** Returns the instance of the delegate. */
   virtual void *instance() { return _instance; }
 
 protected:
@@ -126,6 +128,7 @@ public:
     _idle.push_back(new Delegate<T>(instance, function));
   }
 
+  /** Removes all callbacks of the given instance from the idle signal. */
   template <class T>
   void remIdle(T *instance) {
     std::list<DelegateInterface *>::iterator item = _idle.begin();
@@ -144,6 +147,7 @@ public:
     _onStart.push_back(new Delegate<T>(instance, function));
   }
 
+  /** Removes all callbacks of the given instance from the start signal. */
   template <class T>
   void remStart(T *instance) {
     std::list<DelegateInterface *>::iterator item = _onStart.begin();
@@ -162,6 +166,7 @@ public:
     _onStop.push_back(new Delegate<T>(instance, function));
   }
 
+  /** Removes all callbacks of the given instance from the stop signal. */
   template <class T>
   void remStop(T *instance) {
     std::list<DelegateInterface *>::iterator item = _onStop.begin();

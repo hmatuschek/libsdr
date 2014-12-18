@@ -104,7 +104,7 @@ public:
 };
 
 
-/** A simple node, that allows to balance the IQ signal. */
+/** A simple node, that allows to balance an IQ signal. */
 template <class Scalar>
 class IQBalance: public Sink< std::complex<Scalar> >, public Source
 {
@@ -113,6 +113,10 @@ public:
   typedef typename Traits<Scalar>::SScalar SScalar;
 
 public:
+  /** Constructor.
+   * @param balance Specifies the balance between the I and Q chanel. If @c balance = 1, only the
+   *        I chanel remains, on @c balance = -1 only the Q chanel remains and on @c balance = 0
+   *        both chanels are balanced equally. */
   IQBalance(double balance=0.0)
     : Sink< std::complex<Scalar> >(), Source(), _realFact(1), _imagFact(1)
   {
@@ -128,10 +132,12 @@ public:
     }
   }
 
+  /** Destructor. */
   virtual ~IQBalance() {
     _buffer.unref();
   }
 
+  /** Retunrs the balance. */
   double balance() const {
     if (_realFact != (1<<8)) {
       return (double(_realFact)/(1<<8)-1);
@@ -139,6 +145,7 @@ public:
     return (1-double(_imagFact)/(1<<8));
   }
 
+  /** Sets the I/Q balance. */
   void setBalance(double balance) {
     if (balance < 0) {
       // scale real part
@@ -152,6 +159,7 @@ public:
     }
   }
 
+  /** Configures the node. */
   virtual void config(const Config &src_cfg) {
     // Check if config is complete
     if (! src_cfg.hasBufferSize()) { return; }
@@ -162,6 +170,7 @@ public:
     this->setConfig(cfg);
   }
 
+  /** Processes a buffer. */
   virtual void process(const Buffer<std::complex<Scalar> > &buffer, bool allow_overwrite) {
     if (allow_overwrite) {
       _process(buffer, buffer);
@@ -173,6 +182,7 @@ public:
   }
 
 protected:
+  /** The actual implementation. */
   void _process(const Buffer< std::complex<Scalar> > &in, const Buffer< std::complex<Scalar> > &out) {
     for (size_t i=0; i<in.size(); i++) {
       out[i] = std::complex<Scalar>((_realFact*SScalar(in[i].real()))/(1<<8),
@@ -181,8 +191,11 @@ protected:
   }
 
 protected:
+  /** Scaleing factor for the real part. */
   int32_t _realFact;
+  /** Scaleing factor for the imaginary part. */
   int32_t _imagFact;
+  /** The working buffer. */
   Buffer< std::complex<Scalar> > _buffer;
 };
 

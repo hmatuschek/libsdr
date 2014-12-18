@@ -139,6 +139,7 @@ protected:
     return 2*N;
   }
 
+  /** std::complex<uint8_t> -> std::complex<int8_t>. */
   static size_t _cuint8_cint8(const RawBuffer &in, const RawBuffer &out) {
     size_t N = in.bytesLen()/2;
     std::complex<uint8_t> *values = reinterpret_cast<std::complex<uint8_t> *>(in.data());
