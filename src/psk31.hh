@@ -10,7 +10,7 @@ namespace sdr {
 
 /** A simple BPSK31 "demodulator". This node consumes a complex input stream with a sample-rate of
  * at least 2000Hz and produces a bitstream with 31.25 Hz "sample-rate". Use the @c Varicode node
- * to decode this bitstream to ASCII chars. The BPSK31 signal should be centered around 0Hz, this
+ * to decode this bitstream to ASCII chars. The BPSK31 signal should be centered around 0Hz. This
  * node uses a simple PLL to adjust for small detunings. */
 template <class Scalar>
 class BPSK31: public Sink< std::complex<Scalar> >, public Source
@@ -60,6 +60,7 @@ public:
     _superSample = 64;
   }
 
+  /** Destructor. */
   virtual ~BPSK31() {
     // pass...
   }
@@ -155,17 +156,20 @@ public:
 
 
 protected:
+  /** Returns @c true if there is a phase transition at the current sample. */
   inline bool _hasTransition() const {
     return ((_hist[_hist_idx-1]>=0) && (_hist[_hist_idx]<=0)) ||
         ((_hist[_hist_idx-1]<=0) && (_hist[_hist_idx]>=0));
   }
 
+  /** Returns the current constellation. */
   inline int _currentContellation() const {
     float value = 0;
     for (size_t i=0; i<=_hist_idx; i++) { value += _hist[i]; }
     return (value > 0) ? 1 : -1;
   }
 
+  /** Computes the phase error. */
   inline float _phaseError(const std::complex<float> &value) const {
     float r2 = value.real()*value.real();
     float i2 = value.imag()*value.imag();
@@ -174,6 +178,7 @@ protected:
     return -value.real()*value.imag()/nrm2;
   }
 
+  /** Updates the PLL (@c _F and @c _P). */
   inline void _updatePLL(const std::complex<float> &sample) {
     float phi = _phaseError(sample);
     _F += _beta*phi;
@@ -184,6 +189,7 @@ protected:
     //std::cerr << "Update PLL: P=" << _P << "; F=" << _F << ", err= " << phi << std::endl;
   }
 
+  /** Updates the sub-sampler. */
   inline void _updateSampler(const std::complex<Scalar> &value) {
     // decrease fractional sub-sample counter
     _mu-=1;
@@ -202,6 +208,7 @@ protected:
     _dl_idx = (_dl_idx + 1) % 8;
   }
 
+  /** Updates the PPL state (@c _mu  and @c _omega). */
   inline void _errorTracking(const std::complex<float> &sample) {
     // Update last 2 constellation and phases
     _p_2T = _p_1T; _p_1T = _p_0T; _p_0T = sample;
@@ -229,10 +236,14 @@ protected:
   float _P;
   /** Frequency of the carrier PLL. */
   float _F;
-  /** Upper and lower frequency limit of the carrier PLL. */
-  float _Fmin, _Fmax;
-  /** Gain factors of the carrier PLL. */
-  float _alpha, _beta;
+  /** Lower frequency limit of the carrier PLL. */
+  float _Fmin;
+  /** Upper frequency limit of the carrier PLL. */
+  float _Fmax;
+  /** Gain factor of the carrier PLL. */
+  float _alpha;
+  /** Gain factor of the carrier PLL. */
+  float _beta;
   /** The delay line for the interpolating sub-sampler. */
   Buffer< std::complex<float> > _dl;
   /** The current index of the delay line. */
@@ -247,14 +258,24 @@ protected:
   float _omega;
   /** Relative error of the subsample rate. */
   float _omega_rel;
-  /** Limits of the sub-sample rate. */
-  float _min_omega, _max_omega;
+  /** Minimum of the sub-sample rate. */
+  float _min_omega;
+  /** Maximum of the sub-sample rate. */
+  float _max_omega;
   /** Gain of the sub-sample rate correction. */
   float _gain_omega;
-  /** Last 3 phases. */
-  std::complex<float> _p_0T, _p_1T, _p_2T;
-  /** Last 3 constellations. */
-  std::complex<float> _c_0T, _c_1T, _c_2T;
+  /** Phase at T = 0 (samples). */
+  std::complex<float> _p_0T;
+  /** Phase at T=-1 (samples). */
+  std::complex<float> _p_1T;
+  /** Phase at T=-2 (samples). */
+  std::complex<float> _p_2T;
+  /** Constellation at T=0 (samples). */
+  std::complex<float> _c_0T;
+  /** Constellation at T=-1 (samples). */
+  std::complex<float> _c_1T;
+  /** Constellation at T=-2 (samples). */
+  std::complex<float> _c_2T;
   /** The last @c _superSample phases. */
   Buffer<float> _hist;
   /** Current phase history index. */

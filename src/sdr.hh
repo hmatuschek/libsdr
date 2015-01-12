@@ -291,6 +291,8 @@
 #include "demod.hh"
 #include "psk31.hh"
 
+#include "fftplan.hh"
+
 #ifdef SDR_WITH_FFTW
 #include "filternode.hh"
 #endif

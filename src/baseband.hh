@@ -84,9 +84,9 @@ public:
     _Fc = Fc; this->setFrequencyShift(_Fc);
   }
 
-  /** Returns the center frequency. */
+  /** Returns the filter frequency. */
   inline double filterFrequency() const { return _Ff; }
-  /** (Re-) Sets the center frequency. */
+  /** (Re-) Sets the filter frequency. */
   void setFilterFrequency(double Ff) {
     _Ff = Ff; _update_filter_kernel();
   }

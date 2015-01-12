@@ -41,22 +41,3 @@ INSTALL_HEADERS_WITH_DIRECTORY("${LIBSDR_HEADERS}" "${CMAKE_INSTALL_INCLUDEDIR}/
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/config.hh"
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libsdr")
 
-if(SDR_WITH_FFTW AND SDR_WITH_QT5)
-  set(libsdr_gui_SOURCES gui/spectrum.cc gui/spectrumview.cc gui/waterfallview.cc)
-  set(libsdr_gui_MOC_HEADERS gui/spectrum.hh gui/spectrumview.hh gui/waterfallview.hh)
-  set(libsdr_gui_HEADERS ${libsdr_gui_MOC_HEADERS} gui/gui.hh)
-  qt5_wrap_cpp(libsdr_gui_MOC_SOURCES ${libsdr_gui_MOC_HEADERS})
-
-  add_library(libsdr-gui SHARED ${libsdr_gui_SOURCES} ${libsdr_gui_MOC_SOURCES})
-  set_target_properties(libsdr-gui PROPERTIES OUTPUT_NAME sdr-gui)
-  set_target_properties(libsdr-gui PROPERTIES VERSION
-    "${libsdr_VERSION_MAJOR}.${libsdr_VERSION_MINOR}.${libsdr_VERSION_PATCH}")
-  set_target_properties(libsdr-gui PROPERTIES SOVERION "${libsdr_VERSION_MAJOR}")
-  set_target_properties(libsdr-gui PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
-  set_target_properties(libsdr-gui PROPERTIES MACOSX_RPATH "${CMAKE_INSTALL_RPATH}")
-  target_link_libraries(libsdr-gui libsdr ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES})
-
-  install(TARGETS libsdr-gui DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  INSTALL_HEADERS_WITH_DIRECTORY("${libsdr_gui_HEADERS}" "${CMAKE_INSTALL_INCLUDEDIR}/libsdr")
-endif(SDR_WITH_FFTW AND SDR_WITH_QT5)
-
