@@ -1,6 +1,5 @@
 #cmakedefine SDR_DEBUG 1
 
-#cmakedefine SDR_WITH_QT5 1
 #cmakedefine SDR_WITH_FFTW 1
 #cmakedefine SDR_WITH_PORTAUDIO 1
 #cmakedefine SDR_WITH_RTLSDR 1
