@@ -7,7 +7,7 @@
 
 namespace sdr {
 
-/** This class performs some automatic casts to a certain buffer type if possible specified by
+/** This class performs some automatic casts to a certain buffer type (if possible) specified by
  * the template argument. Currently only integer casts are supported. */
 template <class Scalar>
 class AutoCast: public SinkBase, public Source
@@ -28,9 +28,9 @@ public:
     // Check type cast combination
     if (Config::Type_s8 == Traits<Scalar>::scalarId) {
       switch (src_cfg.type()) {
-      case Config::Type_u8:
+      case Config::Type_u8: _cast = _uint8_int8; break;
       case Config::Type_s8: _cast = _identity; break;
-      case Config::Type_u16:
+      case Config::Type_u16: _cast = _uint16_int8; break;
       case Config::Type_s16: _cast = _int16_int8; break;
       default: break;
       }
@@ -38,17 +38,19 @@ public:
       switch (src_cfg.type()) {
       case Config::Type_u8: _cast = _uint8_cint8; break;
       case Config::Type_s8: _cast = _int8_cint8; break;
-      case Config::Type_cu8: _cast = _cuint8_cint8; break;
+      case Config::Type_cu8: _cast = _uint8_int8; break;
       case Config::Type_cs8: _cast = _identity; break;
-      case Config::Type_u16:
+      case Config::Type_u16: _cast = _uint16_cint8; break;
       case Config::Type_s16: _cast = _int16_cint8; break;
+      case Config::Type_cu16: _cast = _uint16_int8; break;
+      case Config::Type_cs16: _cast = _int16_int8; break;
       default: break;
       }
     } else if (Config::Type_s16 == Traits<Scalar>::scalarId) {
       switch (src_cfg.type()) {
-      case Config::Type_u8:
+      case Config::Type_u8: _cast = _uint8_int16; break;
       case Config::Type_s8: _cast = _int8_int16; break;
-      case Config::Type_u16:
+      case Config::Type_u16: _cast = _uint16_int16; break;
       case Config::Type_s16: _cast = _identity; break;
       default: break;
       }
@@ -56,11 +58,11 @@ public:
       switch (src_cfg.type()) {
       case Config::Type_u8: _cast = _uint8_cint16; break;
       case Config::Type_s8: _cast = _int8_cint16; break;
-      case Config::Type_cu8: _cast = _cuint8_cint16; break;
-      case Config::Type_cs8: _cast = _cint8_cint16; break;
+      case Config::Type_cu8: _cast = _uint8_int16; break;
+      case Config::Type_cs8: _cast = _int8_int16; break;
       case Config::Type_u16: _cast = _uint16_cint16; break;
       case Config::Type_s16: _cast = _int16_cint16; break;
-      case Config::Type_cu16:
+      case Config::Type_cu16: _cast = _uint16_int16; break;
       case Config::Type_cs16: _cast = _identity; break;
       default: break;
       }
@@ -110,11 +112,32 @@ protected:
     return in.bytesLen();
   }
 
+  /** uint8_t -> int8_t */
+  static size_t _uint8_int8(const RawBuffer &in, const RawBuffer &out) {
+    size_t N = in.bytesLen();
+    for (size_t i=0; i<N; i++) {
+      reinterpret_cast<int8_t *>(out.data())[i] =
+          int16_t(reinterpret_cast<uint8_t *>(in.data())[i]) - 127;
+    }
+    return N;
+  }
+
+  /** uint16 -> int8 */
+  static size_t _uint16_int8(const RawBuffer &in, const RawBuffer &out) {
+    size_t N = in.bytesLen()/2;
+    for (size_t i=0; i<N; i++) {
+      reinterpret_cast<int8_t *>(out.data())[i] =
+          int16_t(reinterpret_cast<uint16_t *>(in.data())[i]>>8) - 127;
+    }
+    return N;
+  }
+
   /** int16 -> int8 */
   static size_t _int16_int8(const RawBuffer &in, const RawBuffer &out) {
     size_t N = in.bytesLen()/2;
     for (size_t i=0; i<N; i++) {
-      reinterpret_cast<int8_t *>(out.data())[i] = reinterpret_cast<int16_t *>(in.data())[i]>>8;
+      reinterpret_cast<int8_t *>(out.data())[i] =
+          reinterpret_cast<int16_t *>(in.data())[i]>>8;
     }
     return N;
   }
@@ -134,18 +157,18 @@ protected:
   static size_t _int8_cint8(const RawBuffer &in, const RawBuffer &out) {
     size_t N = in.bytesLen();
     for (size_t i=0; i<N; i++) {
-      reinterpret_cast<std::complex<int8_t> *>(out.data())[i] = reinterpret_cast<int8_t *>(in.data())[i];
+      reinterpret_cast<std::complex<int8_t> *>(out.data())[i] =
+          reinterpret_cast<int8_t *>(in.data())[i];
     }
     return 2*N;
   }
 
-  /** std::complex<uint8_t> -> std::complex<int8_t>. */
-  static size_t _cuint8_cint8(const RawBuffer &in, const RawBuffer &out) {
+  /** uint16 -> complex int 8. */
+  static size_t _uint16_cint8(const RawBuffer &in, const RawBuffer &out) {
     size_t N = in.bytesLen()/2;
-    std::complex<uint8_t> *values = reinterpret_cast<std::complex<uint8_t> *>(in.data());
     for (size_t i=0; i<N; i++) {
-      reinterpret_cast<std::complex<int8_t> *>(out.data())[i] =
-          std::complex<int8_t>(int16_t(values[i].real())-127, int16_t(values[i].imag())-127);
+      reinterpret_cast<std::complex<int8_t> *>(out.data())[i]
+          = int32_t(reinterpret_cast<int16_t *>(in.data())[i]>>8)-((2<<15)-1);
     }
     return 2*N;
   }
@@ -159,12 +182,12 @@ protected:
     return 2*N;
   }
 
-  /** complex int16 -> complex int 8. */
-  static size_t _cint16_cint8(const RawBuffer &in, const RawBuffer &out) {
-    size_t N = in.bytesLen()/4;
-    std::complex<int16_t> *values = reinterpret_cast<std::complex<int16_t> *>(in.data());
+  /** uint8 -> int16. */
+  static size_t _uint8_int16(const RawBuffer &in, const RawBuffer &out) {
+    size_t N = in.bytesLen();
+    int8_t *values = reinterpret_cast<int8_t *>(in.data());
     for (size_t i=0; i<N; i++) {
-      reinterpret_cast<std::complex<int8_t> *>(out.data())[i] = std::complex<int8_t>(values[i].real()>>8, values[i].imag()>>8);
+      reinterpret_cast<int16_t *>(out.data())[i] = (int16_t(values[i])-127)<<8;
     }
     return 2*N;
   }
@@ -175,6 +198,16 @@ protected:
     int8_t *values = reinterpret_cast<int8_t *>(in.data());
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<int16_t *>(out.data())[i] = int16_t(values[i])<<8;
+    }
+    return 2*N;
+  }
+
+  /** uint16 -> int16. */
+  static size_t _uint16_int16(const RawBuffer &in, const RawBuffer &out) {
+    size_t N = in.bytesLen()/2;
+    uint16_t *values = reinterpret_cast<uint16_t *>(in.data());
+    for (size_t i=0; i<N; i++) {
+      reinterpret_cast<int16_t *>(out.data())[i] = int32_t(values[i])-((2<<15)-1);
     }
     return 2*N;
   }
@@ -197,30 +230,6 @@ protected:
     for (size_t i=0; i<N; i++) {
       reinterpret_cast<std::complex<int16_t> *>(out.data())[i]
           = std::complex<int16_t>(int16_t(values[i])*(1<<8));
-    }
-    return 4*N;
-  }
-
-  /** complex unsigned int8 -> complex int16. */
-  static size_t _cuint8_cint16(const RawBuffer &in, const RawBuffer &out) {
-    size_t N = in.bytesLen()/2;
-    std::complex<uint8_t> *values = reinterpret_cast<std::complex<uint8_t> *>(in.data());
-    for (size_t i=0; i<N; i++) {
-      reinterpret_cast<std::complex<int16_t> *>(out.data())[i] =
-          std::complex<int16_t>((int16_t(values[i].real())-127)*(1<<8),
-                                (int16_t(values[i].imag())-127)*(1<<8));
-    }
-    return 4*N;
-  }
-
-  /** complex int8 -> complex int16. */
-  static size_t _cint8_cint16(const RawBuffer &in, const RawBuffer &out) {
-    size_t N = in.bytesLen()/2;
-    std::complex<int8_t> *values = reinterpret_cast<std::complex<int8_t> *>(in.data());
-    for (size_t i=0; i<N; i++) {
-      reinterpret_cast<std::complex<int16_t> *>(out.data())[i] =
-          std::complex<int16_t>(int16_t(values[i].real())*(1<<8),
-                                int16_t(values[i].imag())*(1<<8));
     }
     return 4*N;
   }
