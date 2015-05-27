@@ -40,6 +40,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -70,7 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Groups</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -279,7 +280,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="classsdr_1_1_queue_html_a6d9e3d5fc2007a77d37f4a070159ba5b"><div class="ttname"><a href="classsdr_1_1_queue.html#a6d9e3d5fc2007a77d37f4a070159ba5b">sdr::Queue::remStop</a></div><div class="ttdeci">void remStop(T *instance)</div><div class="ttdoc">Removes all callbacks of the given instance from the stop signal. </div><div class="ttdef"><b>Definition:</b> queue.hh:171</div></div>
 <div class="ttc" id="classsdr_1_1_delegate_html_aa06533bb0da4bcfbcbcc6e29d4713ecc"><div class="ttname"><a href="classsdr_1_1_delegate.html#aa06533bb0da4bcfbcbcc6e29d4713ecc">sdr::Delegate::~Delegate</a></div><div class="ttdeci">virtual ~Delegate()</div><div class="ttdoc">Destructor. </div><div class="ttdef"><b>Definition:</b> queue.hh:33</div></div>
 <div class="ttc" id="classsdr_1_1_queue_1_1_message_html_abc914df82e28a4dd8093b6b6e294640d"><div class="ttname"><a href="classsdr_1_1_queue_1_1_message.html#abc914df82e28a4dd8093b6b6e294640d">sdr::Queue::Message::buffer</a></div><div class="ttdeci">RawBuffer &amp; buffer()</div><div class="ttdoc">Returns the buffer of the message. </div><div class="ttdef"><b>Definition:</b> queue.hh:75</div></div>
-<div class="ttc" id="classsdr_1_1_sink_base_html"><div class="ttname"><a href="classsdr_1_1_sink_base.html">sdr::SinkBase</a></div><div class="ttdoc">Basic interface of all Sinks. </div><div class="ttdef"><b>Definition:</b> node.hh:158</div></div>
+<div class="ttc" id="classsdr_1_1_sink_base_html"><div class="ttname"><a href="classsdr_1_1_sink_base.html">sdr::SinkBase</a></div><div class="ttdoc">Basic interface of all Sinks. </div><div class="ttdef"><b>Definition:</b> node.hh:174</div></div>
 <div class="ttc" id="classsdr_1_1_queue_html_a390125515b339ae54ee586cb4e162131"><div class="ttname"><a href="classsdr_1_1_queue.html#a390125515b339ae54ee586cb4e162131">sdr::Queue::remIdle</a></div><div class="ttdeci">void remIdle(T *instance)</div><div class="ttdoc">Removes all callbacks of the given instance from the idle signal. </div><div class="ttdef"><b>Definition:</b> queue.hh:133</div></div>
 <div class="ttc" id="classsdr_1_1_queue_html_a778063ea21baba61c0e2ede519fb0da8"><div class="ttname"><a href="classsdr_1_1_queue.html#a778063ea21baba61c0e2ede519fb0da8">sdr::Queue::_onStart</a></div><div class="ttdeci">std::list&lt; DelegateInterface * &gt; _onStart</div><div class="ttdoc">Start event callbacks. </div><div class="ttdef"><b>Definition:</b> queue.hh:207</div></div>
 <div class="ttc" id="classsdr_1_1_delegate_interface_html_ab3308df8f5839554e754a713938d71b3"><div class="ttname"><a href="classsdr_1_1_delegate_interface.html#ab3308df8f5839554e754a713938d71b3">sdr::DelegateInterface::operator()</a></div><div class="ttdeci">virtual void operator()()=0</div><div class="ttdoc">Call back interface. </div></div>
@@ -298,7 +299,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed May 27 2015 14:36:14 for libsdr by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed May 27 2015 15:24:41 for libsdr by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

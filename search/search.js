@@ -14,7 +14,8 @@ var indexSectionsWithContent =
   4: "ciors",
   5: "adt",
   6: "afinst",
-  7: "abdt"
+  7: "df",
+  8: "abdt"
 };
 
 var indexSectionNames =
@@ -26,7 +27,8 @@ var indexSectionNames =
   4: "typedefs",
   5: "enums",
   6: "enumvalues",
-  7: "pages"
+  7: "groups",
+  8: "pages"
 };
 
 function convertToId(search)

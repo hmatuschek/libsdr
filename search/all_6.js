@@ -8,6 +8,7 @@ var searchData=
   ['filterfrequency',['filterFrequency',['../classsdr_1_1_i_q_base_band.html#a47ec654ceec6c5210b470bb7ff1a651e',1,'sdr::IQBaseBand']]],
   ['filternode',['FilterNode',['../classsdr_1_1_filter_node.html',1,'sdr']]],
   ['filternode',['FilterNode',['../classsdr_1_1_filter_node.html#a9ef6fadf38e94d3dac8ed61c170eca78',1,'sdr::FilterNode']]],
+  ['filter_20and_20signal_20processing_20nodes_2e',['Filter and signal processing nodes.',['../group__filters.html',1,'']]],
   ['filtersink',['FilterSink',['../classsdr_1_1_filter_sink.html',1,'sdr']]],
   ['filtersink',['FilterSink',['../classsdr_1_1_filter_sink.html#a272a1da79e3dd1d9faad8ab278b7176d',1,'sdr::FilterSink']]],
   ['filtersource',['FilterSource',['../classsdr_1_1_filter_source.html',1,'sdr']]],
