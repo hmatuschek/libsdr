@@ -44,5 +44,5 @@ var searchData=
   ['streamsink',['StreamSink',['../classsdr_1_1_stream_sink.html#a7543d34895cb13ec98ab25ba94664ac6',1,'sdr::StreamSink']]],
   ['streamsource',['StreamSource',['../classsdr_1_1_stream_source.html#a7a0302e45ef26e8af6846f29b40d7d80',1,'sdr::StreamSource']]],
   ['sub',['sub',['../classsdr_1_1_buffer.html#a8d8e0ca5402163ed7b9cd486c5236336',1,'sdr::Buffer']]],
-  ['subsample',['subSample',['../classsdr_1_1_i_q_base_band.html#a04c5dd06532c40bd54a456cdfb064716',1,'sdr::IQBaseBand::subSample()'],['../classsdr_1_1_sub_sample.html#a7097f77c46ba54641ddedbe89721bb1a',1,'sdr::SubSample::SubSample(size_t n)'],['../classsdr_1_1_sub_sample.html#a3a9d5ec57e9b687206145db2d57c5b11',1,'sdr::SubSample::SubSample(double Fs)'],['../classsdr_1_1_frac_sub_sample_base.html#a9570de3fda6677931072581264d33db1',1,'sdr::FracSubSampleBase::subsample()']]]
+  ['subsample',['SubSample',['../classsdr_1_1_sub_sample.html#a7097f77c46ba54641ddedbe89721bb1a',1,'sdr::SubSample::SubSample(size_t n)'],['../classsdr_1_1_sub_sample.html#a3a9d5ec57e9b687206145db2d57c5b11',1,'sdr::SubSample::SubSample(double Fs)'],['../classsdr_1_1_i_q_base_band.html#a04c5dd06532c40bd54a456cdfb064716',1,'sdr::IQBaseBand::subSample()'],['../classsdr_1_1_frac_sub_sample_base.html#a9570de3fda6677931072581264d33db1',1,'sdr::FracSubSampleBase::subsample()']]]
 ];

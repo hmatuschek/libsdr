@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['textdump',['TextDump',['../classsdr_1_1_text_dump.html',1,'sdr']]],
   ['tocomplex',['ToComplex',['../classsdr_1_1_to_complex.html',1,'sdr']]],
   ['traits',['Traits',['../classsdr_1_1_traits.html',1,'sdr']]],
   ['traits_3c_20double_20_3e',['Traits&lt; double &gt;',['../classsdr_1_1_traits_3_01double_01_4.html',1,'sdr']]],

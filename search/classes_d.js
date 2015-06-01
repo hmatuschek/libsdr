@@ -5,6 +5,7 @@ var searchData=
   ['siggen',['SigGen',['../classsdr_1_1_sig_gen.html',1,'sdr']]],
   ['signedtounsigned',['SignedToUnsigned',['../classsdr_1_1_signed_to_unsigned.html',1,'sdr']]],
   ['sink',['Sink',['../classsdr_1_1_sink.html',1,'sdr']]],
+  ['sink_3c_20int16_5ft_20_3e',['Sink&lt; int16_t &gt;',['../classsdr_1_1_sink.html',1,'sdr']]],
   ['sink_3c_20iscalar_20_3e',['Sink&lt; iScalar &gt;',['../classsdr_1_1_sink.html',1,'sdr']]],
   ['sink_3c_20std_3a_3acomplex_3c_20iscalar_20_3e_20_3e',['Sink&lt; std::complex&lt; iScalar &gt; &gt;',['../classsdr_1_1_sink.html',1,'sdr']]],
   ['sink_3c_20std_3a_3acomplex_3c_20scalar_20_3e_20_3e',['Sink&lt; std::complex&lt; Scalar &gt; &gt;',['../classsdr_1_1_sink.html',1,'sdr']]],
