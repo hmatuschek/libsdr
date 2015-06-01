@@ -8,8 +8,8 @@
 
 namespace sdr {
 
-/** A simple BPSK31 "demodulator". This node consumes a complex input stream with a sample-rate of
- * at least 2000Hz and produces a bitstream with 31.25 Hz "sample-rate". Use the @c Varicode node
+/** A simple BPSK31 "demodulator". This node consumes a complex input stream with a sample rate of
+ * at least 2000Hz and produces a bitstream with 31.25 Hz "sample rate". Use the @c Varicode node
  * to decode this bitstream to ASCII chars. The BPSK31 signal should be centered around 0Hz. This
  * node uses a simple PLL to adjust for small detunings. */
 template <class Scalar>
@@ -62,7 +62,10 @@ public:
 
   /** Destructor. */
   virtual ~BPSK31() {
-    // pass...
+    // unreference buffers
+    _dl.unref();
+    _hist.unref();
+    _buffer.unref();
   }
 
   virtual void config(const Config &src_cfg)

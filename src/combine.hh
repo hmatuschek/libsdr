@@ -12,7 +12,7 @@ namespace sdr {
 
 template <class Scalar> class Combine;
 
-/** A single sink of a Combine node. */
+/** A single sink of a Combine node. Do not use this node explicitly, consider using @c Combine. */
 template <class Scalar>
 class CombineSink: public Sink<Scalar>
 {
@@ -78,9 +78,11 @@ public:
   virtual ~Combine() {
     // Unref all buffers and free sinks
     for (size_t i=0; i<_sinks.size(); i++) {
-      _buffers[i].unref(); delete _sinks[i];
+      delete _sinks[i];
+      _buffers[i].unref();
     }
-    _buffers.clear(); _sinks.clear();
+    _buffers.clear();
+    _sinks.clear();
   }
 
   /** Needs to be overridden. */

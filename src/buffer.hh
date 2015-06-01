@@ -82,7 +82,7 @@ public:
   void unref();
   /** Returns the reference counter. */
   inline int refCount() const { if (0 == _refcount) { return 0; } return (*_refcount); }
-  /** We assume here that buffers are owned by some object: A buffer is therefore "unused" if the
+  /** We assume here that buffers are owned by one object: A buffer is therefore "unused" if the
    * owner holds the only reference to the buffer. */
   inline bool isUnused() const {
     if (0 == _refcount) { return true; }

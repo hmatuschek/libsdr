@@ -105,7 +105,7 @@ RTLSource::setGain(double gain) {
 
 void
 RTLSource::start() {
-  pthread_create(&_thread, 0, RTLSource::__rtl_srd_parallel_main, this);
+  pthread_create(&_thread, 0, RTLSource::__rtl_sdr_parallel_main, this);
 }
 
 void
@@ -131,7 +131,7 @@ RTLSource::deviceName(size_t idx) {
 
 
 void *
-RTLSource::__rtl_srd_parallel_main(void *ctx) {
+RTLSource::__rtl_sdr_parallel_main(void *ctx) {
   RTLSource *self = reinterpret_cast<RTLSource *>(ctx);
   rtlsdr_read_async(self->_device, &RTLSource::__rtl_sdr_callback, self,
                     15, self->_buffer_size*2);

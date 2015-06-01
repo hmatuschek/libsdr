@@ -25,7 +25,9 @@ RawBuffer::RawBuffer(size_t N, BufferOwner *owner)
     _refcount((int *)malloc(sizeof(int))), _owner(owner)
 {
   // Check if data could be allocated
-  if ((0 == _ptr) && (0 != _refcount)) { free(_refcount); _refcount = 0;  _storage_size = 0; return; }
+  if ((0 == _ptr) && (0 != _refcount)) {
+    free(_refcount); _refcount = 0;  _storage_size = 0; return;
+  }
   // Set refcount, done...
   if (_refcount) { (*_refcount) = 1; }
 }
@@ -62,7 +64,7 @@ void RawBuffer::unref() {
   // If empty -> skip...
   if ((0 == _ptr) || (0 == _refcount)) { return; }
   // Decrement refcount
-  (*_refcount) -= 1;
+  (*_refcount)--;
   // If there is only one reference left and the buffer is owned -> notify owner, who holds the last
   // reference.
   if ((1 == (*_refcount)) && (_owner)) { _owner->bufferUnused(*this); }

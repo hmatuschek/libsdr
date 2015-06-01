@@ -185,3 +185,34 @@ SignedToUnsigned::_process_int16(const RawBuffer &in, const RawBuffer &out) {
   }
   this->send(RawBuffer(out, 0, num), true);
 }
+
+
+/* ********************************************************************************************* *
+ * Implementation of TextDump
+ * ********************************************************************************************* */
+TextDump::TextDump(std::ostream &stream)
+  : Sink<uint8_t>(), _stream(stream)
+{
+  // pass...
+}
+
+void
+TextDump::config(const Config &src_cfg) {
+  // Requires type
+  if (!src_cfg.hasType()) { return; }
+  if (src_cfg.type() != Traits<uint8_t>::scalarId) {
+    ConfigError err;
+    err << "Can not configure TextDump node: Invalid input type " << src_cfg.type()
+        << ", expected " << Config::Type_u8 << ".";
+    throw err;
+  }
+  // done
+}
+
+void
+TextDump::process(const Buffer<uint8_t> &buffer, bool allow_overwrite) {
+  for (size_t i=0; i<buffer.size(); i++) {
+    _stream << char(buffer[i]);
+  }
+}
+

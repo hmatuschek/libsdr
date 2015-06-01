@@ -20,6 +20,7 @@ template <> inline int16_t fast_atan2<int8_t, int16_t>(int8_t a, int8_t b) {
   return (a >= 0) ? angle : -angle;
 }
 
+/** Implementation of atan2 approximation using integers. */
 template <> inline int16_t fast_atan2<uint8_t, int16_t>(uint8_t ua, uint8_t ub) {
   int8_t a = (int16_t(ua)-(1<<7));
   int8_t b = (int16_t(ub)-(1<<7));

@@ -8,7 +8,10 @@
 
 namespace sdr {
 
-/** Implements a @c uint_8 I/Q source for RTL2832 based TV dongles. */
+/** Implements a @c uint_8 I/Q source for RTL2832 based TV dongles.
+ * This source runs in its own thread, hence the user does not need to trigger the reception of
+ * the next data chunk explicitly. The reception is started by calling the @c start method and
+ * stopped by calling the @c stop method. */
 class RTLSource: public Source
 {
 public:
@@ -18,14 +21,15 @@ public:
    * @c enableAGC and @c setGain methods.
    *
    * @param frequency Specifies the tuner frequency.
-   * @param sample_rate Specifies the sample rate.
-   * @param device_idx Specifies the device to be used. */
+   * @param sample_rate Specifies the sample rate in Hz.
+   * @param device_idx Specifies the device to be used. The @c numDevices
+   *        and @c deviceName static method can be used to select the desired device index. */
   RTLSource(double frequency, double sample_rate=1e6, size_t device_idx=0);
 
   /** Destructor. */
   virtual ~RTLSource();
 
-  /** Returns the freuency of the tuner. */
+  /** Returns the tuner frequency. */
   inline double frequency() const { return _frequency; }
   /** (Re-) Sets the tuner frequency. */
   void setFrequency(double frequency);
@@ -64,8 +68,8 @@ public:
   static std::string deviceName(size_t idx);
 
 protected:
-  /** Prallel routine to receive some data from the device. */
-  static void *__rtl_srd_parallel_main(void *ctx);
+  /** Parallel routine to receive some data from the device. */
+  static void *__rtl_sdr_parallel_main(void *ctx);
   /** Callback to process received data. */
   static void __rtl_sdr_callback(unsigned char *buffer, uint32_t len, void *ctx);
 

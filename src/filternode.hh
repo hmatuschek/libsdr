@@ -47,7 +47,10 @@ public:
   }
 
   /** Destructor. */
-  virtual ~FilterSink() { }
+  virtual ~FilterSink() {
+    _in_buffer.unref();
+    _out_buffer.unref();
+  }
 
   /** Configures the node. */
   virtual void config(const Config &src_cfg) {

@@ -869,6 +869,19 @@ protected:
 };
 
 
+class TextDump : public Sink<uint8_t>
+{
+public:
+  TextDump(std::ostream &stream=std::cerr);
+
+  virtual void config(const Config &src_cfg);
+  virtual void process(const Buffer<uint8_t> &buffer, bool allow_overwrite);
+
+protected:
+  std::ostream &_stream;
+};
+
+
 /** A Gaussian White Noise source. */
 template <class Scalar>
 class GWNSource: public Source

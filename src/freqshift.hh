@@ -8,7 +8,7 @@
 
 namespace sdr {
 
-/** A performant implementation of a frequency shift operation on integer signals. */
+/** A performant implementation of a frequency-shift operation on integer signals. */
 template <class Scalar>
 class FreqShiftBase
 {
@@ -60,12 +60,15 @@ public:
     if (0 == _lut_inc) { return value; }
     // Get index, idx = (_lut_count/256)
     size_t idx = (_lut_count>>8);
+    // Handle negative frequency shifts
     if (0 > _freq_shift) { idx = _lut_size - idx - 1; }
+    // Apply
     value = ((_lut[idx] * value) >> Traits<Scalar>::shift);
     // Incement _lut_count
     _lut_count += _lut_inc;
     // _lut_count modulo (_lut_size*256)
     while (_lut_count >= (_lut_size<<8)) { _lut_count -= (_lut_size<<8); }
+    // Done.
     return value;
   }
 
@@ -75,7 +78,7 @@ protected:
     // Every sample increments the LUT index by lut_inc/256.
     // The multiple is needed as ratio between the frequency shift _Fc and the sample rate _Fs
     // may not result in an integer increment. By simply flooring _lut_size*_Fc/_Fs, the actual
-    // down conversion may be much smaller than actual reuqired. Hence, the counter in therefore
+    // down conversion may be much smaller than actual reuqired. Hence, the counter is therefore
     // incremented by the integer (256*_lut_size*_Fc/_Fs) and the index is then obtained by
     // dividing _lut_count by 256 (right shift 8 bits).
     _lut_inc = (_lut_size*(1<<8)*std::abs(_freq_shift))/_Fs;

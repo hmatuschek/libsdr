@@ -70,7 +70,12 @@ public:
   }
 
   /** Destructor. */
-  virtual ~PortSource() { if (0 != _stream) { Pa_CloseStream(_stream); } }
+  virtual ~PortSource() {
+    // close stream
+    if (0 != _stream) { Pa_CloseStream(_stream); }
+    // unref buffer
+    _buffer.unref();
+  }
 
   /** Reads (blocking) the next buffer from the PortAudio stream. This function can be
    * connected to the idle event of the @c Queue. */

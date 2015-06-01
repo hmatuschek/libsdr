@@ -14,9 +14,9 @@ namespace sdr {
 /** This class performs several operations on the complex (integral) input stream, it first filters
  * out some part of the input stream using a FIR band pass (band pass is centerred around @c Ff
  * with width @c width) then shifts the center frequency @c Fc to 0 and finally sub-samples the
- * resulting stream. This node can be used to select a portion of the input stream and reduce the
- * rate of the stream, allowing for some more expensive operations to be performed on the output
- * stream. */
+ * resulting stream. This node can be used to select a portion of the input spectrum and for the
+ * reduction of the stream rate, allowing for some more expensive operations to be performed on the
+ * output stream. */
 template <class Scalar>
 class IQBaseBand: public Sink< std::complex<Scalar> >, public Source, public FreqShiftBase<Scalar>
 {

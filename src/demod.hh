@@ -26,7 +26,8 @@ public:
 
   /** Destructor. */
   virtual ~AMDemod() {
-    // pass...
+    // free buffers
+    _buffer.unref();
   }
 
   /** Configures the AM demod. */
@@ -40,8 +41,11 @@ public:
           << ", expected " << Config::typeId< std::complex<Scalar> >();
       throw err;
     }
+
+    // Unreference previous buffer
+    _buffer.unref();
     // Allocate buffer
-    _buffer =  Buffer<Scalar>(src_cfg.bufferSize());
+    _buffer = Buffer<Scalar>(src_cfg.bufferSize());
 
     LogMessage msg(LOG_DEBUG);
     msg << "Configure AMDemod: " << this << std::endl
@@ -59,16 +63,6 @@ public:
   /** Handles the I/Q input buffer. */
   virtual void process(const Buffer<std::complex<Scalar> > &buffer, bool allow_overwrite)
   {
-    // Drop buffer if output buffer is still in use:
-    if (! _buffer.isUnused()) {
-#ifdef SDR_DEBUG
-      LogMessage msg(LOG_WARNING);
-      msg << __FILE__ << ": Output buffer still in use: Drop received buffer...";
-      Logger::get().log(msg);
-      return;
-#endif
-    }
-
     Buffer<Scalar> out_buffer;
     // If source allow to overwrite the buffer, use it otherwise rely on own buffer
     if (allow_overwrite) { out_buffer = Buffer<Scalar>(buffer); }
@@ -111,7 +105,7 @@ public:
 
   /** Destructor. */
   virtual ~USBDemod() {
-    // pass...
+    _buffer.unref();
   }
 
   /** Configures the USB demodulator. */
@@ -125,6 +119,9 @@ public:
           << ", expected " << Config::typeId<CScalar>();
       throw err;
     }
+
+    // Unreference previous buffer
+    _buffer.unref();
     // Allocate buffer
     _buffer =  Buffer<Scalar>(src_cfg.bufferSize());
 
@@ -146,16 +143,9 @@ public:
     if (allow_overwrite) {
       // Process in-place
       _process(buffer, Buffer<Scalar>(buffer));
-    } else if (_buffer.isUnused()) {
+    } else {
       // Store result in buffer
       _process(buffer, _buffer);
-    } else {
-      // Drop buffer
-#ifdef SDR_DEBUG
-      LogMessage msg(LOG_WARNING);
-      msg << "SSBDemod: Drop buffer.";
-      Logger::get().log(msg);
-#endif
     }
   }
 
@@ -193,7 +183,7 @@ public:
 
   /** Destructor. */
   virtual ~FMDemod() {
-    // pass...
+    _buffer.unref();
   }
 
   /** Configures the FM demodulator. */
@@ -237,14 +227,8 @@ public:
 
     if (allow_overwrite && _can_overwrite) {
       _process(buffer, Buffer<oScalar>(buffer));
-    } else if (_buffer.isUnused()) {
-      _process(buffer, _buffer);
     } else {
-#ifdef SDR_DEBUG
-      LogMessage msg(LOG_WARNING);
-      msg << "FMDemod: Drop buffer: Output buffer still in use.";
-      Logger::get().log(msg);
-#endif
+      _process(buffer, _buffer);
     }
   }
 
@@ -311,7 +295,7 @@ public:
 
   /** Destructor. */
   virtual ~FMDeemph() {
-    // pass...
+    _buffer.unref();
   }
 
   /** Returns true if the filter node is enabled. */
@@ -336,8 +320,17 @@ public:
           1.0/( (1.0-exp(-1.0/(src_cfg.sampleRate() * 75e-6) )) ) );
     // Reset average:
     _avg = 0;
+    // Unreference previous buffer
+    _buffer.unref();
     // Allocate buffer:
     _buffer = Buffer<Scalar>(src_cfg.bufferSize());
+
+    LogMessage msg(LOG_DEBUG);
+    msg << "Configured FMDDeemph node: " << this << std::endl
+        << " sample-rate: " << src_cfg.sampleRate() << std::endl
+        << " type: " << src_cfg.type();
+    Logger::get().log(msg);
+
     // Propergate config:
     this->setConfig(Config(src_cfg.type(), src_cfg.sampleRate(), src_cfg.bufferSize(), 1));
   }

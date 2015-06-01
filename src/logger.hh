@@ -8,16 +8,17 @@
 
 namespace sdr {
 
-/** Specifies the possible log-level. */
+/** Specifies the possible log levels. */
 typedef enum {
-  LOG_DEBUG,
-  LOG_INFO,
-  LOG_WARNING,
-  LOG_ERROR
+  LOG_DEBUG,   ///< Every thing that may be of interest.
+  LOG_INFO,    ///< Messages about state changes.
+  LOG_WARNING, ///< Non critical errors (i.e. data loss).
+  LOG_ERROR    ///< Critical errors.
 } LogLevel;
 
 
-/** A log message. */
+/** A log message.
+ * Bundles a message with a level. */
 class LogMessage: public std::stringstream
 {
 public:
@@ -41,7 +42,7 @@ protected:
 };
 
 
-/** Base class of all log message handlers. */
+/** Base class of all log-message handlers. */
 class LogHandler
 {
 protected:
@@ -68,6 +69,7 @@ public:
   StreamLogHandler(std::ostream &stream, LogLevel level);
   /** Destructor. */
   virtual ~StreamLogHandler();
+
   /** Handles the message. */
   virtual void handle(const LogMessage &msg);
 
@@ -96,6 +98,7 @@ public:
 
   /** Logs a message. */
   void log(const LogMessage &message);
+
   /** Adds a message handler. The ownership of the hander is transferred to the logger
    *  instance. */
   void addHandler(LogHandler *handler);

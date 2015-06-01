@@ -1,22 +1,34 @@
 # libsdr - A simple software defined radio (SDR) library
 
-**First of all:** I  assembled this library for my one entertainment and to learn something about software defined radio. If you are interested into a full-featured, performant SDR framework, consider using GNU radio (http://gnuradio.org). 
+**First of all:** I  assembled this library for my one entertainment and to learn something about
+software defined radio. If you are interested into a full-featured, performant SDR framework,
+consider using GNU radio (http://gnuradio.org).
 
-<a href="http://de.tinypic.com?ref=2jb2qfb" target="_blank"><img src="http://i61.tinypic.com/2jb2qfb.png" border="0" alt="SRD-RX"></a>
+<a href="http://de.tinypic.com?ref=2jb2qfb" target="_blank">
+ <img src="http://i61.tinypic.com/2jb2qfb.png" border="0" alt="SRD-RX">
+</a>
 
-Although being simple, libsdr is sufficient to write a simple SDR receiver application (http://github.com/hmatuschek/sdr-rx, above). This RX application supports several input sources (i.e. sound card, files, RTL2382 dongles etc.) and modes (i.e. AM, FM, SSB, CW, etc.).
+Although being simple, libsdr is sufficient to write a simple SDR receiver application
+(http://github.com/hmatuschek/sdr-rx, above). This RX application supports several input sources
+(i.e. sound card, files, RTL2382 dongles etc.) and modes (i.e. AM, FM, SSB, CW, etc.).
 
 
 ## Build
 
-The only required run-time dependency of `libsdr` is `libpthread`, which is available on all Unix-like OSs like Linux and MacOS X. It is also available for windows if `mingw` is used (http://www.mingw.org) of compilation. There are also some optional dependencies, which allow for the usage of some additional features of the library. 
+The only required run-time dependency of `libsdr` is `libpthread`, which is available on all
+Unix-like OSs like Linux and MacOS X. It is also available for windows if `mingw` is used
+(http://www.mingw.org) of compilation. There are also some optional dependencies, which allow for
+the usage of some additional features of the library.
 
-* `Qt5` (http://qt-project.org) - Enables the `libsdr-gui` library implementing some graphical user interface elements like a spectrum view.
-* `fftw3` (http://www.fftw.org) - Also required by the GUI library and allows for FFT-convolution filters.
+* `Qt5` (http://qt-project.org) - Enables the `libsdr-gui` library implementing some graphical user
+   interface elements like a spectrum view.
+* `fftw3` (http://www.fftw.org) - Also required by the GUI library and allows for FFT-convolution
+   filters.
 * `PortAudio` (http://www.portaudio.com) - Allows for sound-card input and output.
 * `librtlsdr` (http://rtlsdr.org) - Allows to interface RTL2382U based USB dongles.
 
-For the compilation of the library, `cmake` (http://www.cmake.org) is also required (as well as a compiler like gcc or clang of cause).
+For the compilation of the library, `cmake` (http://www.cmake.org) is also required (as well as a
+compiler like gcc or clang of cause).
 
 Compiling the library is the canonical cmake path:
 
