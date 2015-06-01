@@ -84,9 +84,13 @@ protected:
   /** Delay line index. */
   size_t _dl_idx;
 
+  /** Ring buffer of the last @c _corrLen symbols. */
   Buffer<int16_t> _symbols;
+  /** Insertion index. */
   size_t  _symbolIdx;
+  /** Sum of the current @c _corrLen symbols. */
   int32_t _symSum;
+  /** Sum of the last @c _corrLen symbols. */
   int32_t _lastSymSum;
 
   /** Last received bits. */

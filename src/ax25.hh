@@ -30,6 +30,7 @@ public:
   /** Processes the bit stream. */
   virtual void process(const Buffer<uint8_t> &buffer, bool allow_overwrite);
 
+  /** Unpacks a AX.25 encoded call (address). */
   static void unpackCall(const uint8_t *buffer, std::string &call, int &ssid, bool &addrExt);
 
 protected:
