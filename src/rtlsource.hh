@@ -11,7 +11,8 @@ namespace sdr {
 /** Implements a @c uint_8 I/Q source for RTL2832 based TV dongles.
  * This source runs in its own thread, hence the user does not need to trigger the reception of
  * the next data chunk explicitly. The reception is started by calling the @c start method and
- * stopped by calling the @c stop method. */
+ * stopped by calling the @c stop method.
+ * @ingroup sources */
 class RTLSource: public Source
 {
 public:

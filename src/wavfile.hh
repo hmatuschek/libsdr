@@ -6,7 +6,8 @@
 
 namespace sdr {
 
-/** Stores the received buffers into a WAV file. */
+/** Stores the received buffers into a WAV file.
+ * @ingroup sinks */
 template <class Scalar>
 class WavSink: public Sink<Scalar>
 {
@@ -127,7 +128,8 @@ protected:
 
 
 /** A simple imput source that reads from a wav file. Some data is read from the file on every call
- * to  @c next until the end of file is reached. */
+ * to  @c next until the end of file is reached.
+ * @ingroup sources */
 class WavSource: public Source
 {
 public:

@@ -8,7 +8,8 @@
 
 namespace sdr {
 
-/** A performant implementation of a frequency-shift operation on integer signals. */
+/** A performant implementation of a frequency-shift operation on integer signals.
+ * @ingroup filters */
 template <class Scalar>
 class FreqShiftBase
 {

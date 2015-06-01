@@ -6,7 +6,8 @@
 
 namespace sdr {
 
-/** Arbitrary function generator. */
+/** Arbitrary function generator.
+ * @ingroup sources */
 template <class Scalar>
 class SigGen: public Source
 {
@@ -83,7 +84,8 @@ protected:
 
 
 
-/** Arbitrary function generator. */
+/** Arbitrary function generator.
+ * @ingroup sources */
 template <class Scalar>
 class IQSigGen: public Source
 {

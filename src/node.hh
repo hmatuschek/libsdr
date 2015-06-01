@@ -1,3 +1,19 @@
+/** @defgroup sources Data sources.
+ * This module collects all data sources provided by libsdr.
+ *
+ * @defgroup sinks Data sinks.
+ * This module collects all data sinks provided by libsdr.
+ *
+ * @defgroup filters Filter and signal processing nodes.
+ * This group collects all filter and signal processing nodes provided by libsdr.
+ *
+ * @defgroup demods Demodulator nodes.
+ * This group collects all demodulation nodes.
+ *
+ * @defgroup datanodes Data handling nodes.
+ * This group collects all nodes related to data handling. I.e. type casts etc.
+ */
+
 #ifndef __SDR_NODE_HH__
 #define __SDR_NODE_HH__
 
@@ -294,7 +310,8 @@ private:
 };
 
 
-/** A NOP node. */
+/** A NOP node.
+ * @ingroup filters */
 class Proxy: public SinkBase, public Source
 {
 public:

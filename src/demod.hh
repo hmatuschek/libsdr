@@ -12,7 +12,8 @@
 namespace sdr {
 
 
-/** Amplitude modulation (AM) demodulator from an I/Q signal. */
+/** Amplitude modulation (AM) demodulator from an I/Q signal.
+ * @ingroup demods */
 template <class Scalar>
 class AMDemod
     : public Sink< std::complex<Scalar> >, public Source
@@ -85,7 +86,8 @@ protected:
 };
 
 
-/** SSB upper side band (USB) demodulator from an I/Q signal. */
+/** SSB upper side band (USB) demodulator from an I/Q signal.
+ * @ingroup demods */
 template <class Scalar>
 class USBDemod
     : public Sink< std::complex<Scalar> >, public Source
@@ -165,7 +167,10 @@ protected:
 
 
 
-/** Demodulates FM from an I/Q signal. */
+/** Demodulates FM from an I/Q signal.
+ * This node only implements the demodulation of the signal, the needed post-filtering (deemphasize)
+ * is implemented in a separate node, @c sdr::FMDeemph.
+ * @ingroup demods */
 template <class iScalar, class oScalar=iScalar>
 class FMDemod: public Sink< std::complex<iScalar> >, public Source
 {
@@ -281,7 +286,8 @@ protected:
 };
 
 
-/** A tiny node to de-emphasize the higher frequencies of a FM transmitted audio signal. */
+/** A tiny node to de-emphasize the higher frequencies of a FM transmitted audio signal.
+ * @ingroup filters */
 template <class Scalar>
 class FMDeemph: public Sink<Scalar>, public Source
 {

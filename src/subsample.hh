@@ -10,7 +10,8 @@
 
 namespace sdr {
 
-/** Simple averaging sub-sampler. */
+/** Simple averaging sub-sampler.
+ * @ingroup filters */
 template <class Scalar>
 class SubSample: public Sink<Scalar>, public Source
 {
@@ -188,7 +189,8 @@ protected:
 /** An interpolating sub-sampler. This node uses an 8-tap FIR filter to interpolate between
  * two values (given 8). Please do not use this node to subsample by a factor grater than 8,
  * as this may result into artifacts unless the signal was filtered accordingly before
- * subsampling it. */
+ * subsampling it.
+ * @ingroup filters */
 template <class iScalar, class oScalar = iScalar>
 class InpolSubSampler: public Sink<iScalar>, public Source
 {
