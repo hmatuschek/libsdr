@@ -11,7 +11,8 @@
 
 namespace sdr {
 
-/** Extracts the real or imaginary part of a complex valued data stream. */
+/** Extracts the real or imaginary part of a complex valued data stream.
+ * @ingroup datanodes */
 template <class Scalar>
 class RealImagPart: public Sink< std::complex<Scalar> >, public Source
 {
@@ -76,7 +77,8 @@ protected:
 };
 
 
-/** Selects the real part of a complex signal. */
+/** Selects the real part of a complex signal.
+ * @ingroup datanodes */
 template <class Scalar>
 class RealPart: public RealImagPart<Scalar>
 {
@@ -90,7 +92,8 @@ public:
 };
 
 
-/** Selects the imaginary part of a complex signal. */
+/** Selects the imaginary part of a complex signal.
+ * @ingroup datanodes */
 template <class Scalar>
 class ImagPart: public RealImagPart<Scalar>
 {
@@ -104,7 +107,8 @@ public:
 };
 
 
-/** A simple node, that allows to balance an IQ signal. */
+/** A simple node, that allows to balance an IQ signal.
+ * @ingroup filters */
 template <class Scalar>
 class IQBalance: public Sink< std::complex<Scalar> >, public Source
 {
@@ -201,7 +205,8 @@ protected:
 
 
 /** Tiny helper node to transform a real part into a complex, including
- * a possible type-cast*/
+ * a possible type-cast
+ * @ingroup datanodes */
 template <class iScalar, class oScalar=iScalar>
 class ToComplex: public Sink<iScalar>, public Source
 {
@@ -256,7 +261,8 @@ protected:
 
 
 
-/** Explicit type cast node. */
+/** Explicit type cast node.
+ * @ingroup datanodes */
 template <class iScalar, class oScalar>
 class Cast : public Sink<iScalar>, public Source
 {
@@ -361,7 +367,8 @@ protected:
 
 
 
-/** Performs a reinterprete cast from an unsinged value to a singed one. */
+/** Performs a reinterprete cast from an unsinged value to a singed one.
+ * @ingroup datanodes */
 class UnsignedToSigned: public SinkBase, public Source
 {
 public:
@@ -392,7 +399,8 @@ protected:
 
 
 
-/** Performs a reinterprete cast from an unsinged value to a singed one. */
+/** Performs a reinterprete cast from an unsinged value to a singed one.
+ * @ingroup datanodes */
 class SignedToUnsigned: public SinkBase, public Source
 {
 public:
@@ -423,7 +431,8 @@ protected:
 /** Performs a frequency shift on a complex input signal, by multiplying it with \f$e^{i\omega t}\f$.
  * Please note, this node performs not optimal in cases, where the input scalar is an integer, as
  * the computation is performed using double precision floating point numbers.
- * @deprecated Implement a more efficient variant using FreqShiftBase. */
+ * @deprecated Implement a more efficient variant using FreqShiftBase.
+ * @ingroup filters */
 template <class Scalar>
 class FreqShift: public Sink< std::complex<Scalar> >, public Source
 {
@@ -510,7 +519,8 @@ protected:
 };
 
 
-/** Reads raw samples from an imput stream, (ie a file). */
+/** Reads raw samples from an imput stream, (ie a file).
+ * @ingroup sources */
 template<class Scalar>
 class StreamSource: public Source
 {
@@ -541,7 +551,8 @@ protected:
 };
 
 
-/** Serializes the incomming buffers as raw data. */
+/** Serializes the incomming buffers as raw data.
+ * @ingroup sinks */
 template <class Scalar>
 class StreamSink: public Sink<Scalar>
 {
@@ -579,7 +590,8 @@ protected:
 
 
 
-/** Simple scaling node. */
+/** Simple scaling node.
+ * @ingroup filters */
 template <class Scalar>
 class Scale : public Sink<Scalar>, public Source
 {
@@ -640,7 +652,8 @@ protected:
 
 
 
-/** An automatic gain control node. */
+/** An automatic gain control node.
+ * @ingroup filters */
 template <class Scalar>
 class AGC: public Sink<Scalar>, public Source
 {
@@ -780,7 +793,8 @@ protected:
 };
 
 
-/** Keeps a copy of the last buffer received. */
+/** Keeps a copy of the last buffer received.
+ * @ingroup sinks */
 template <class Scalar>
 class DebugStore: public Sink<Scalar>
 {
@@ -827,7 +841,8 @@ public:
 };
 
 
-/** Dumps buffers in a human readable form. */
+/** Dumps buffers in a human readable form.
+ * @ingroup sinks*/
 template <class Scalar>
 class DebugDump: public Sink<Scalar>
 {
@@ -869,7 +884,8 @@ protected:
 };
 
 
-/** A Gaussian White Noise source. */
+/** A Gaussian White Noise source.
+ * @ingroup sources */
 template <class Scalar>
 class GWNSource: public Source
 {

@@ -111,7 +111,8 @@ public:
 
 
 /** Generic FIR filter class. Use one of the specializations below for a low-, high- or band-pass
- * filter. */
+ * filter.
+ * @ingroup filters */
 template <class Scalar, class FilterCoeffs>
 class FIRFilter: public Sink<Scalar>, public Source
 {
@@ -269,7 +270,8 @@ protected:
 };
 
 
-/** Low-pass FIR filter specialization. */
+/** Low-pass FIR filter specialization.
+ * @ingroup filters */
 template <class Scalar>
 class FIRLowPass: public FIRFilter<Scalar, FIRLowPassCoeffs>
 {
@@ -285,7 +287,8 @@ public:
   inline void setFreq(double freq) { FIRFilter<Scalar, FIRLowPassCoeffs>::setUpperFreq(freq); }
 };
 
-/** High-pass FIR filter specialization. */
+/** High-pass FIR filter specialization.
+ * @ingroup filters */
 template <class Scalar>
 class FIRHighPass: public FIRFilter<Scalar, FIRHighPassCoeffs>
 {
@@ -302,7 +305,8 @@ public:
 };
 
 
-/** Band-pass FIR filter specialization. */
+/** Band-pass FIR filter specialization.
+ * @ingroup filters */
 template <class Scalar>
 class FIRBandPass: public FIRFilter<Scalar, FIRBandPassCoeffs>
 {
@@ -314,7 +318,8 @@ public:
   virtual ~FIRBandPass() { }
 };
 
-/** Band-stop FIR filter specialization. */
+/** Band-stop FIR filter specialization.
+ * @ingroup filters */
 template <class Scalar>
 class FIRBandStop: public FIRFilter<Scalar, FIRBandStopCoeffs>
 {

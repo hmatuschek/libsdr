@@ -60,7 +60,8 @@ protected:
 };
 
 
-/** A combine node. This node allows to combine several streams into one. */
+/** A combine node. This node allows to combine several streams into one.
+ * @ingroup datanodes */
 template <class Scalar>
 class Combine
 {
@@ -147,7 +148,8 @@ protected:
 };
 
 
-/** Interleaves several input streams. */
+/** Interleaves several input streams.
+ * @ingroup datanodes */
 template <class Scalar>
 class Interleave : public Combine<Scalar>, public Source
 {

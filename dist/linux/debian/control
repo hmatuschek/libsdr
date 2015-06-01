@@ -1,21 +1,25 @@
 Source: libsdr
 Priority: extra
 Maintainer: Hannes Matuschek <hmatuschek@gmail.com>
-Build-Depends: cdbs (>= 0.4.51), dh-exec, debhelper (>= 8.0.0), cmake, qtbase5-dev (>= 5.0), portaudio19-dev, librtlsdr-dev, fftw3-dev
-Standards-Version: 3.9.2
+Build-Depends: cdbs (>= 0.4.51), dh-exec, debhelper (>= 9.0.0), cmake, portaudio19-dev, librtlsdr-dev, fftw3-dev
+Standards-Version: 3.9.5
 Section: hamradio
 Homepage: http://github.com/hmatuschek/libsdr
 
-Package: libsdr
+Package: libsdr1
 Section: hamradio
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Multi-Arch: same
+Pre-Depends: multiarch-support, ${misc:Pre-Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libportaudio2
 Description: libsdr
   A C++ library for software defined radio.
 
 Package: libsdr-dev
 Section: hamradio
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libsdr
+Multi-Arch: same
+Pre-Depends: multiarch-support, ${misc:Pre-Depends}
+Depends: libsdr1 (= ${binary:Version}), ${misc:Depends}, portaudio19-dev, librtlsdr-dev, fftw3-dev, libsdr1
 Description: libsdr
   A C++ library for software defined radio. Development files.

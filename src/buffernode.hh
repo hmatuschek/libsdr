@@ -12,7 +12,8 @@
 namespace sdr {
 
 /** A simple buffering node, that ensures a fixed buffer size. This node is useful, expecially in
- * front of a node that performs a FFT transform, which requires a certain buffer size. */
+ * front of a node that performs a FFT transform, which requires a certain buffer size.
+ * @ingroup datanodes */
 template <class Scalar>
 class BufferNode : public Sink<Scalar>, public Source
 {

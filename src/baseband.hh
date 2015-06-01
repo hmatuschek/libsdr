@@ -16,7 +16,8 @@ namespace sdr {
  * with width @c width) then shifts the center frequency @c Fc to 0 and finally sub-samples the
  * resulting stream. This node can be used to select a portion of the input stream and reduce the
  * rate of the stream, allowing for some more expensive operations to be performed on the output
- * stream. */
+ * stream.
+ * @ingroup filters */
 template <class Scalar>
 class IQBaseBand: public Sink< std::complex<Scalar> >, public Source, public FreqShiftBase<Scalar>
 {
@@ -298,7 +299,8 @@ protected:
 /** This class performs several operations on the real input stream,
  * It first filters out some part of the input stream using a FIR band pass filter
  * then shifts the center frequency to 0 and finally sub-samples the resulting stream such that
- * the selected base-band is well represented. */
+ * the selected base-band is well represented.
+ * @ingroup filters */
 template <class Scalar>
 class BaseBand: public Sink<Scalar>, public Source, public FreqShiftBase<Scalar>
 {

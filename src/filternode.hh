@@ -223,7 +223,8 @@ protected:
 };
 
 
-/** A FFT filter bank node wich consists of several filters. */
+/** A FFT filter bank node wich consists of several filters.
+ * @ingroup filters */
 template <class Scalar>
 class FilterNode
 {

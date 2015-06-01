@@ -8,7 +8,8 @@
 
 namespace sdr {
 
-/** Implements a @c uint_8 I/Q source for RTL2832 based TV dongles. */
+/** Implements a @c uint_8 I/Q source for RTL2832 based TV dongles.
+ * @ingroup sources */
 class RTLSource: public Source
 {
 public:

@@ -33,7 +33,8 @@ public:
 };
 
 
-/** PortAudio playback node. */
+/** PortAudio playback node.
+ * @ingroup sinks */
 class PortSink: public SinkBase
 {
 public:
@@ -55,7 +56,8 @@ protected:
 };
 
 
-/** PortAudio input stream as a @c Source. */
+/** PortAudio input stream as a @c Source.
+ * @ingroup sources */
 template <class Scalar>
 class PortSource: public Source
 {

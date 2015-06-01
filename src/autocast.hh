@@ -8,7 +8,8 @@
 namespace sdr {
 
 /** This class performs some automatic casts to a certain buffer type if possible specified by
- * the template argument. Currently only integer casts are supported. */
+ * the template argument. Currently only integer casts are supported.
+ * @ingroup datanodes */
 template <class Scalar>
 class AutoCast: public SinkBase, public Source
 {

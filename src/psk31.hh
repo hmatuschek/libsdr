@@ -11,7 +11,8 @@ namespace sdr {
 /** A simple BPSK31 "demodulator". This node consumes a complex input stream with a sample-rate of
  * at least 2000Hz and produces a bitstream with 31.25 Hz "sample-rate". Use the @c Varicode node
  * to decode this bitstream to ASCII chars. The BPSK31 signal should be centered around 0Hz. This
- * node uses a simple PLL to adjust for small detunings. */
+ * node uses a simple PLL to adjust for small detunings.
+ * @ingroup demod */
 template <class Scalar>
 class BPSK31: public Sink< std::complex<Scalar> >, public Source
 {
@@ -290,7 +291,8 @@ protected:
 
 /** Simple varicode (Huffman code) decoder node. It consumes a bit-stream (uint8_t)
  * and produces a uint8_t stream of ascii chars. Non-printable chars (except for new-line) are
- * ignored. The output stream has no samplerate! */
+ * ignored. The output stream has no samplerate!
+ * @ingroup datanodes */
 class Varicode: public Sink<uint8_t>, public Source
 {
 public:
