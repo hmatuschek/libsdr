@@ -25,7 +25,7 @@ var searchData=
   ['traits_3c_20std_3a_3acomplex_3c_20uint8_5ft_20_3e_20_3e',['Traits&lt; std::complex&lt; uint8_t &gt; &gt;',['../classsdr_1_1_traits_3_01std_1_1complex_3_01uint8__t_01_4_01_4.html',1,'sdr']]],
   ['traits_3c_20uint16_5ft_20_3e',['Traits&lt; uint16_t &gt;',['../classsdr_1_1_traits_3_01uint16__t_01_4.html',1,'sdr']]],
   ['traits_3c_20uint8_5ft_20_3e',['Traits&lt; uint8_t &gt;',['../classsdr_1_1_traits_3_01uint8__t_01_4.html',1,'sdr']]],
-  ['transition',['TRANSITION',['../classsdr_1_1_a_f_s_k.html#a616ece7cbdde1101fc7a08bbfacd460da15d9ca21f40f0d9f872fadacf79cf3c1',1,'sdr::AFSK']]],
+  ['transition',['TRANSITION',['../group__demods.html#gga616ece7cbdde1101fc7a08bbfacd460da15d9ca21f40f0d9f872fadacf79cf3c1',1,'sdr::AFSK']]],
   ['type',['type',['../structsdr_1_1_options_1_1_definition.html#aa78a55af6815b3cf3a3254d010e4dbd2',1,'sdr::Options::Definition::type()'],['../classsdr_1_1_config.html#afebc90c2a5f54a8a3ab5b896cfe37724',1,'sdr::Config::type()'],['../classsdr_1_1_source.html#ab9362057c06f35e0a23901cc0556b976',1,'sdr::Source::type()'],['../classsdr_1_1_config.html#a62084c40ed753ff6caefdc4564c597b8',1,'sdr::Config::Type()'],['../classsdr_1_1_options_1_1_value.html#a0c9f78ee322f128c50d74b76d51ad33e',1,'sdr::Options::Value::Type()']]],
   ['type_5fcf32',['Type_cf32',['../classsdr_1_1_config.html#a62084c40ed753ff6caefdc4564c597b8a3517b22ed2f8ebce25b6ce140e0fc4ae',1,'sdr::Config']]],
   ['type_5fcf64',['Type_cf64',['../classsdr_1_1_config.html#a62084c40ed753ff6caefdc4564c597b8a0533d0f0f70fad0f430cdfa6c86b4e7c',1,'sdr::Config']]],
