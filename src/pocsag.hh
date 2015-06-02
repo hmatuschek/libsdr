@@ -11,13 +11,16 @@ namespace sdr {
  *
  * The POCSAG protocol is defined as followig:
  *
- *  1) at least 576 bits of alternating value (1 0 1 0 ...)
- *  2) a 32-bit sync word (0x7CD215D8)
- *  3) 2x8 data words (each 32 bit)
- *  4) If data left to send -> continue with step 2
+ *  1. at least 576 bits of alternating value (1 0 1 0 ...)
+ *  2. a 32-bit sync word (0x7CD215D8)
+ *  3. 2x8 data words (each 32 bit)
+ *  4. If data left to send -> continue with step 2
  *
  * Unused data words are send as 0x7A89C197. Each dataword is either a address word (bit 31 = 0)
  * or message word (bit 31 = 1).
+ *
+ * In order to process the received message you need to override the @c handleMessages() method
+ * which gets called once a batch of messages has been received.
  *
  * @ingroup datanodes */
 class POCSAG: public Sink<uint8_t>
