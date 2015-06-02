@@ -23,7 +23,17 @@ namespace sdr {
 class POCSAG: public Sink<uint8_t>
 {
 public:
-  /** A posac message. */
+  /** A pocsag message.
+   * A pocsag message can be either a numeric message (i.e. phone numbers) or a text message.
+   * The transmitter knows which type a certain receiver expects, hence there is no information
+   * embedded into the actual message that determines the type. Hence a heuristic needs to be
+   * used in order to select the message type by the contents of the message. This is done using
+   * the @c estimateText and @c estimateNumeric functions. They return a weight in favor of one of
+   * the types. I.e. if estimateText() > estimateNumeric(), the message is likely to be a text
+   * message. Like any heuristic, this approach may fail.
+   * The message text is returned by @c asText() and the numeric data is returned by
+   * @c asNumeric(). Both methods return a @c std::string as the numeric message may also contain
+   * a very limited set of non-number symbols. */
   class Message {
   public:
     /** Empty constructor. */
@@ -48,7 +58,10 @@ public:
     /** Adds some payload from the given POGSAC word. */
     void addPayload(uint32_t word);
 
+    /** Retruns the "likelihood" that the message is a text message (actually a log-likelihood). */
     int estimateText() const;
+    /** Retruns the "likelihood" that the message is a numeric message
+     * (actually a log-likelihood). */
     int estimateNumeric() const;
 
     /** Decodes the message as a text message. */
