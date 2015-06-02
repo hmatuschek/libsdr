@@ -9,7 +9,7 @@ var searchData=
   ['iqbaseband',['IQBaseBand',['../classsdr_1_1_i_q_base_band.html#ac2ee96b0eac170f1a32d21f6a50ea799',1,'sdr::IQBaseBand::IQBaseBand(double Fc, double width, size_t order, size_t sub_sample, double oFs=0.0)'],['../classsdr_1_1_i_q_base_band.html#a797b04b4d9a44a10134408bcfb117228',1,'sdr::IQBaseBand::IQBaseBand(double Fc, double Ff, double width, size_t order, size_t sub_sample, double oFs=0.0)']]],
   ['iqsiggen',['IQSigGen',['../classsdr_1_1_i_q_sig_gen.html#acedf832e6e71da70836b98bf8ec3fe38',1,'sdr::IQSigGen']]],
   ['isactive',['isActive',['../classsdr_1_1_blocking_source.html#a982d9e5c670e2a738dd5ae3cc783c9ea',1,'sdr::BlockingSource']]],
-  ['isempty',['isEmpty',['../classsdr_1_1_raw_buffer.html#a944346de6bb972f687716bee921a3bad',1,'sdr::RawBuffer']]],
+  ['isempty',['isEmpty',['../classsdr_1_1_raw_buffer.html#a944346de6bb972f687716bee921a3bad',1,'sdr::RawBuffer::isEmpty()'],['../classsdr_1_1_p_o_c_s_a_g_1_1_message.html#ae95a67e45dfabcc4855e11ffe5457e2f',1,'sdr::POCSAG::Message::isEmpty()']]],
   ['isenabled',['isEnabled',['../classsdr_1_1_f_m_deemph.html#a09465c706c213ac9d3c95617b8fde001',1,'sdr::FMDeemph']]],
   ['isfloat',['isFloat',['../classsdr_1_1_options_1_1_value.html#a1b598a10284f1d79558b2681ad85e23d',1,'sdr::Options::Value']]],
   ['isinteger',['isInteger',['../classsdr_1_1_options_1_1_value.html#a59b02e020546531e410d5f3f9b53b3e6',1,'sdr::Options::Value']]],

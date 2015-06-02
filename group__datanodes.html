@@ -109,6 +109,15 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_interleave.html">sdr::Interleave&lt; Scalar &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interleaves several input streams.  <a href="classsdr_1_1_interleave.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_p_o_c_s_a_g_1_1_message.html">sdr::POCSAG::Message</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pocsag message.  <a href="classsdr_1_1_p_o_c_s_a_g_1_1_message.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_p_o_c_s_a_g.html">sdr::POCSAG</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements a <a class="el" href="classsdr_1_1_p_o_c_s_a_g.html" title="Implements a POCSAG decoder. ">POCSAG</a> decoder.  <a href="classsdr_1_1_p_o_c_s_a_g.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_p_o_c_s_a_g_dump.html">sdr::POCSAGDump</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple extention of the <code><a class="el" href="classsdr_1_1_p_o_c_s_a_g.html" title="Implements a POCSAG decoder. ">POCSAG</a></code> node that prints the received messages to a <code>std::ostream</code>.  <a href="classsdr_1_1_p_o_c_s_a_g_dump.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_varicode.html">sdr::Varicode</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple varicode (Huffman code) decoder node.  <a href="classsdr_1_1_varicode.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -147,6 +156,12 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:gadbb2fe468eeee0a50936513575d614f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies the number of stop bits.  <a href="group__datanodes.html#gadbb2fe468eeee0a50936513575d614f1">More...</a><br /></td></tr>
 <tr class="separator:gadbb2fe468eeee0a50936513575d614f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2b69aab0584a38f7cfb2d245b4099287"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datanodes.html#ga2b69aab0584a38f7cfb2d245b4099287">sdr::POCSAG::State</a> { <a class="el" href="group__datanodes.html#gga2b69aab0584a38f7cfb2d245b4099287a388e63dbe8e604130bd7d260f3f95750">sdr::POCSAG::WAIT</a>, 
+<a class="el" href="group__datanodes.html#gga2b69aab0584a38f7cfb2d245b4099287aa20ab6517b16763e35493b66701e639f">sdr::POCSAG::RECEIVE</a>, 
+<a class="el" href="group__datanodes.html#gga2b69aab0584a38f7cfb2d245b4099287ad7b38a50e2d7d2fdfd13448a7f5ea8d2">sdr::POCSAG::CHECK_CONTINUE</a>
+ }</td></tr>
+<tr class="memdesc:ga2b69aab0584a38f7cfb2d245b4099287"><td class="mdescLeft">&#160;</td><td class="mdescRight">The possible states of the POGSAC receiver.  <a href="group__datanodes.html#ga2b69aab0584a38f7cfb2d245b4099287">More...</a><br /></td></tr>
+<tr class="separator:ga2b69aab0584a38f7cfb2d245b4099287"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>This group collects all nodes related to data handling. </p>
@@ -169,6 +184,39 @@ Enumerations</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga581aaffb59408dc43ed022365ca7cf9ca44d0f08e7c82b8eef81d27359b2f77be"></a>FIGURES&#160;</td><td class="fielddoc">
 <p>Numbers, symbols etc. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a class="anchor" id="ga2b69aab0584a38f7cfb2d245b4099287"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__datanodes.html#ga2b69aab0584a38f7cfb2d245b4099287">sdr::POCSAG::State</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The possible states of the POGSAC receiver. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga2b69aab0584a38f7cfb2d245b4099287a388e63dbe8e604130bd7d260f3f95750"></a>WAIT&#160;</td><td class="fielddoc">
+<p>Wait for a sync word. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga2b69aab0584a38f7cfb2d245b4099287aa20ab6517b16763e35493b66701e639f"></a>RECEIVE&#160;</td><td class="fielddoc">
+<p>Receive data. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga2b69aab0584a38f7cfb2d245b4099287ad7b38a50e2d7d2fdfd13448a7f5ea8d2"></a>CHECK_CONTINUE&#160;</td><td class="fielddoc">
+<p>Wait for the sync word for continuation. </p>
 </td></tr>
 </table>
 
@@ -202,7 +250,7 @@ Enumerations</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 1 2015 11:43:48 for libsdr by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Jun 2 2015 18:28:37 for libsdr by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

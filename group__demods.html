@@ -79,8 +79,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
-<a href="#enum-members">Enumerations</a>  </div>
+<a href="#nested-classes">Classes</a>  </div>
   <div class="headertitle">
 <div class="title">Demodulator nodes.</div>  </div>
 </div><!--header-->
@@ -91,9 +90,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_a_f_s_k.html">sdr::AFSK</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple (Audio) Frequency Shift Keying (<a class="el" href="classsdr_1_1_a_f_s_k.html" title="A simple (Audio) Frequency Shift Keying (AFSK) demodulator. ">AFSK</a>) demodulator.  <a href="classsdr_1_1_a_f_s_k.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_a_m_demod.html">sdr::AMDemod&lt; Scalar &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Amplitude modulation (AM) demodulator from an I/Q signal.  <a href="classsdr_1_1_a_m_demod.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -103,47 +99,22 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_f_m_demod.html">sdr::FMDemod&lt; iScalar, oScalar &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Demodulates FM from an I/Q signal.  <a href="classsdr_1_1_f_m_demod.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_f_s_k_detector.html">sdr::FSKDetector</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements the basic FSK/AFSK symbol detection.  <a href="classsdr_1_1_f_s_k_detector.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_a_s_k_detector.html">sdr::ASKDetector&lt; Scalar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rather trivial node to detect mark/space symbols by the amplitude.  <a href="classsdr_1_1_a_s_k_detector.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsdr_1_1_b_p_s_k31.html">sdr::BPSK31&lt; Scalar &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A simple <a class="el" href="classsdr_1_1_b_p_s_k31.html" title="A simple BPSK31 &quot;demodulator&quot;. ">BPSK31</a> "demodulator".  <a href="classsdr_1_1_b_p_s_k31.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
-Enumerations</h2></td></tr>
-<tr class="memitem:ga616ece7cbdde1101fc7a08bbfacd460d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__demods.html#ga616ece7cbdde1101fc7a08bbfacd460d">sdr::AFSK::Mode</a> { <a class="el" href="group__demods.html#gga616ece7cbdde1101fc7a08bbfacd460dae59f37cc16bd92549bf96a780a26b4ec">sdr::AFSK::NORMAL</a>, 
-<a class="el" href="group__demods.html#gga616ece7cbdde1101fc7a08bbfacd460da15d9ca21f40f0d9f872fadacf79cf3c1">sdr::AFSK::TRANSITION</a>
- }</td></tr>
-<tr class="memdesc:ga616ece7cbdde1101fc7a08bbfacd460d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Possible bit decoding modes.  <a href="group__demods.html#ga616ece7cbdde1101fc7a08bbfacd460d">More...</a><br /></td></tr>
-<tr class="separator:ga616ece7cbdde1101fc7a08bbfacd460d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>This group collects all demodulation nodes. </p>
-<h2 class="groupheader">Enumeration Type Documentation</h2>
-<a class="anchor" id="ga616ece7cbdde1101fc7a08bbfacd460d"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="group__demods.html#ga616ece7cbdde1101fc7a08bbfacd460d">sdr::AFSK::Mode</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Possible bit decoding modes. </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga616ece7cbdde1101fc7a08bbfacd460dae59f37cc16bd92549bf96a780a26b4ec"></a>NORMAL&#160;</td><td class="fielddoc">
-<p>Normal mode (i.e. mark -&gt; 1, space -&gt; 0). </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga616ece7cbdde1101fc7a08bbfacd460da15d9ca21f40f0d9f872fadacf79cf3c1"></a>TRANSITION&#160;</td><td class="fielddoc">
-<p>Transition mode (i.e. transition -&gt; 0, no transition -&gt; 1). </p>
-</td></tr>
-</table>
-
-</div>
-</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jun 1 2015 11:43:48 for libsdr by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Jun 2 2015 18:28:37 for libsdr by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

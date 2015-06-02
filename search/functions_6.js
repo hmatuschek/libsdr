@@ -21,5 +21,7 @@ var searchData=
   ['freqshift',['FreqShift',['../classsdr_1_1_freq_shift.html#a277a98f4b337726d07b3245a920b6456',1,'sdr::FreqShift']]],
   ['freqshiftbase',['FreqShiftBase',['../classsdr_1_1_freq_shift_base.html#a0fda649f8939151e931c89dc6e6dcc15',1,'sdr::FreqShiftBase']]],
   ['frequency',['frequency',['../classsdr_1_1_r_t_l_source.html#a0b0c2bfa386cf42f623cfee094553268',1,'sdr::RTLSource']]],
-  ['frequencyshift',['frequencyShift',['../classsdr_1_1_freq_shift_base.html#ae35765fc1fd75d595a77551fa1670606',1,'sdr::FreqShiftBase']]]
+  ['frequencyshift',['frequencyShift',['../classsdr_1_1_freq_shift_base.html#ae35765fc1fd75d595a77551fa1670606',1,'sdr::FreqShiftBase']]],
+  ['fskdetector',['FSKDetector',['../classsdr_1_1_f_s_k_detector.html#ae008ff98b89f6316af096669bb6187ec',1,'sdr::FSKDetector']]],
+  ['function',['function',['../classsdr_1_1_p_o_c_s_a_g_1_1_message.html#aa14a18f6a3b5c877584c4bd594d34623',1,'sdr::POCSAG::Message']]]
 ];

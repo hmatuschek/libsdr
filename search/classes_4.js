@@ -24,5 +24,6 @@ var searchData=
   ['fmdemod',['FMDemod',['../classsdr_1_1_f_m_demod.html',1,'sdr']]],
   ['fracsubsamplebase',['FracSubSampleBase',['../classsdr_1_1_frac_sub_sample_base.html',1,'sdr']]],
   ['freqshift',['FreqShift',['../classsdr_1_1_freq_shift.html',1,'sdr']]],
-  ['freqshiftbase',['FreqShiftBase',['../classsdr_1_1_freq_shift_base.html',1,'sdr']]]
+  ['freqshiftbase',['FreqShiftBase',['../classsdr_1_1_freq_shift_base.html',1,'sdr']]],
+  ['fskdetector',['FSKDetector',['../classsdr_1_1_f_s_k_detector.html',1,'sdr']]]
 ];

@@ -5,7 +5,7 @@ var searchData=
   ['none',['NONE',['../classsdr_1_1_options_1_1_value.html#a0c9f78ee322f128c50d74b76d51ad33ea92c0a239d71fe6f6d4a5baa3807bf454',1,'sdr::Options::Value']]],
   ['norm',['norm',['../classsdr_1_1_buffer.html#a8df39d602194a3294b6494698c5eac5b',1,'sdr::Buffer::norm() const '],['../classsdr_1_1_buffer.html#a13e1b6880ac7553e43a786ea6e71b945',1,'sdr::Buffer::norm(double p) const ']]],
   ['norm2',['norm2',['../classsdr_1_1_buffer.html#adc13d307ada394c5d72bff1b23c67e45',1,'sdr::Buffer']]],
-  ['normal',['NORMAL',['../group__demods.html#gga616ece7cbdde1101fc7a08bbfacd460dae59f37cc16bd92549bf96a780a26b4ec',1,'sdr::AFSK']]],
+  ['normal',['NORMAL',['../classsdr_1_1_bit_stream.html#a3ca44f0da52f36e6d8a237edc72c572aadec360802d662114215152adaa8c84dd',1,'sdr::BitStream']]],
   ['notifyconfig',['notifyConfig',['../classsdr_1_1_combine.html#ae9a58e1e60e3f8aeb7c99266504302ab',1,'sdr::Combine']]],
   ['notifydata',['notifyData',['../classsdr_1_1_combine.html#a122bd26fcf778feb91b4304b3af7056c',1,'sdr::Combine']]],
   ['numbuffers',['numBuffers',['../classsdr_1_1_config.html#a023ef493d310cfc8a304c2443c69fc51',1,'sdr::Config']]],
