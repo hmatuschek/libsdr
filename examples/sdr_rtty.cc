@@ -1,7 +1,7 @@
 #include "autocast.hh"
 #include "portaudio.hh"
 #include "wavfile.hh"
-#include "afsk.hh"
+#include "fsk.hh"
 #include "baudot.hh"
 #include "utils.hh"
 

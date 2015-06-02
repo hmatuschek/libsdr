@@ -1,7 +1,7 @@
 #include "wavfile.hh"
 #include "autocast.hh"
 #include "interpolate.hh"
-#include "afsk.hh"
+#include "fsk.hh"
 #include "ax25.hh"
 #include "utils.hh"
 

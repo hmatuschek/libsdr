@@ -1,4 +1,4 @@
-#include "afsk.hh"
+#include "fsk.hh"
 #include "logger.hh"
 #include "traits.hh"
 #include "interpolate.hh"
@@ -6,6 +6,9 @@
 using namespace sdr;
 
 
+/* ******************************************************************************************** *
+ * Implementation of FSKDetector
+ * ******************************************************************************************** */
 FSKDetector::FSKDetector(float baud, float Fmark, float Fspace)
   : Sink<int16_t>(), Source(), _baud(baud), _corrLen(0), _Fmark(Fmark), _Fspace(Fspace)
 {
@@ -92,6 +95,10 @@ FSKDetector::process(const Buffer<int16_t> &buffer, bool allow_overwrite) {
 }
 
 
+
+/* ******************************************************************************************** *
+ * Implementation of BitStream
+ * ******************************************************************************************** */
 BitStream::BitStream(float baud, Mode mode)
   : Sink<uint8_t>(), Source(), _baud(baud), _mode(mode), _corrLen(0)
 {
@@ -106,7 +113,7 @@ BitStream::config(const Config &src_cfg) {
   // Check if buffer type matches
   if (Config::typeId<uint8_t>() != src_cfg.type()) {
     ConfigError err;
-    err << "Can not configure FSKBitStreamBase: Invalid type " << src_cfg.type()
+    err << "Can not configure BitStream: Invalid type " << src_cfg.type()
         << ", expected " << Config::typeId<int16_t>();
     throw err;
   }
@@ -136,11 +143,11 @@ BitStream::config(const Config &src_cfg) {
   _buffer = Buffer<uint8_t>(1+src_cfg.bufferSize()/_corrLen);
 
   LogMessage msg(LOG_DEBUG);
-  msg << "Config FSKBitStreamBase node: " << std::endl
-      << " input sample rate: " << src_cfg.sampleRate() << " Hz" << std::endl
-      << " baud rate: " << _baud << std::endl
-      << " samples per bit: " << 1./_omega << std::endl
-      << " phase incr/symbol: " << _omega;
+  msg << "Config BitStream node: " << std::endl
+      << " symbol rate: " << src_cfg.sampleRate() << " Hz" << std::endl
+      << " baud rate:   " << _baud << std::endl
+      << " symbols/bit: " << 1./_omega << std::endl
+      << " bit mode:    " << ( (NORMAL == _mode) ? "normal" : "transition" );
   Logger::get().log(msg);
 
   // Forward config.
@@ -193,3 +200,37 @@ BitStream::process(const Buffer<uint8_t> &buffer, bool allow_overwrite)
 
   if (o>0) { this->send(_buffer.head(o)); }
 }
+
+
+/* ******************************************************************************************** *
+ * Implementation of BitDump
+ * ******************************************************************************************** */
+BitDump::BitDump(std::ostream &stream)
+  : Sink<uint8_t>(), _stream(stream)
+{
+  // pass...
+}
+
+void
+BitDump::config(const Config &src_cfg) {
+  // Check if config is complete
+  if (!src_cfg.hasType()) { return; }
+
+  // Check if buffer type matches
+  if (Config::typeId<uint8_t>() != src_cfg.type()) {
+    ConfigError err;
+    err << "Can not configure BitDump: Invalid type " << src_cfg.type()
+        << ", expected " << Config::typeId<int16_t>();
+    throw err;
+  }
+}
+
+void
+BitDump::process(const Buffer<uint8_t> &buffer, bool allow_overwrite) {
+  for (size_t i=0; i<buffer.size(); i++) {
+    _stream << int(buffer[i]) << " ";
+  }
+  _stream << std::endl;
+}
+
+

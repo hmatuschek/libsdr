@@ -290,9 +290,10 @@
 
 #include "demod.hh"
 #include "psk31.hh"
-#include "afsk.hh"
+#include "fsk.hh"
 #include "baudot.hh"
 #include "ax25.hh"
+#include "pocsag.hh"
 
 #include "fftplan.hh"
 

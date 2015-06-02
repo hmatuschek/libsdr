@@ -1,7 +1,7 @@
 #include "autocast.hh"
 #include "portaudio.hh"
 #include "wavfile.hh"
-#include "afsk.hh"
+#include "fsk.hh"
 #include "utils.hh"
 #include "pocsag.hh"
 
@@ -36,21 +36,17 @@ int main(int argc, char *argv[])
   WavSource src(argv[1]);
   PortSink sink;
   AutoCast<int16_t> cast;
-  ASKDetector<int16_t> detector;
+  ASKDetector<int16_t> detector(false);
   BitStream bits(1200, BitStream::NORMAL);
-  POCSAG pocsag;
+  POCSAGDump pocsag(std::cout);
 
-  //BitDump dump;
-
-  // Playback
-  //src.connect(&sink);
   // Cast to int16
   src.connect(&cast);
   // ASK detector
   cast.connect(&detector);
+  // bit decoder
   detector.connect(&bits);
-  // Baudot decoder
-  // dump to std::cerr
+  // POCSAG decoder and print
   bits.connect(&pocsag);
 
   // on idle -> read next buffer from input file
