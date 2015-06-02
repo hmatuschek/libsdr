@@ -2,8 +2,8 @@
 #include "portaudio.hh"
 #include "wavfile.hh"
 #include "afsk.hh"
-#include "baudot.hh"
 #include "utils.hh"
+#include "pocsag.hh"
 
 #include <iostream>
 #include <cmath>
@@ -16,11 +16,10 @@ static void __sigint_handler(int signo) {
   Queue::get().stop();
 }
 
-
 int main(int argc, char *argv[])
 {
   if (2 != argc) {
-    std::cerr << "Usage: sdr_rtty FILENAME" << std::endl;
+    std::cerr << "Usage: sdr_posag FILENAME" << std::endl;
     return -1;
   }
 
@@ -37,22 +36,22 @@ int main(int argc, char *argv[])
   WavSource src(argv[1]);
   PortSink sink;
   AutoCast<int16_t> cast;
-  FSKDetector fsk(90.90, 930., 1100.);
-  BitStream bits(90.90, BitStream::NORMAL);
-  Baudot decoder;
-  TextDump dump;
+  ASKDetector<int16_t> detector;
+  BitStream bits(1200, BitStream::NORMAL);
+  POCSAG pocsag;
+
+  //BitDump dump;
 
   // Playback
-  src.connect(&sink);
+  //src.connect(&sink);
   // Cast to int16
   src.connect(&cast);
-  // FSK demod
-  cast.connect(&fsk);
-  fsk.connect(&bits);
+  // ASK detector
+  cast.connect(&detector);
+  detector.connect(&bits);
   // Baudot decoder
-  bits.connect(&decoder);
   // dump to std::cerr
-  decoder.connect(&dump);
+  bits.connect(&pocsag);
 
   // on idle -> read next buffer from input file
   queue.addIdle(&src, &WavSource::next);

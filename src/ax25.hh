@@ -16,8 +16,7 @@ namespace sdr {
  * The node does not process the actual AX.25 packages, it only checks the frame check sequence and
  * forwards the AX.25 datagram to all connected sinks on success. The receiving node is responsible
  * for unpacking and handling the received datagram.
- *
- * @ingroup datanode */
+ * @ingroup datanodes */
 class AX25: public Sink<uint8_t>, public Source
 {
 public:

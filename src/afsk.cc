@@ -6,18 +6,14 @@
 using namespace sdr;
 
 
-AFSK::AFSK(double baud, double Fmark, double Fspace, Mode mode)
-  : Sink<int16_t>(), Source(), _baud(baud), _Fmark(Fmark), _Fspace(Fspace), _mode(mode)
+FSKDetector::FSKDetector(float baud, float Fmark, float Fspace)
+  : Sink<int16_t>(), Source(), _baud(baud), _corrLen(0), _Fmark(Fmark), _Fspace(Fspace)
 {
   // pass...
 }
 
-AFSK::~AFSK() {
-  // pass...
-}
-
 void
-AFSK::config(const Config &src_cfg)
+FSKDetector::config(const Config &src_cfg)
 {
   // Check if config is complete
   if (!src_cfg.hasType() || !src_cfg.hasSampleRate()) { return; }
@@ -25,144 +21,175 @@ AFSK::config(const Config &src_cfg)
   // Check if buffer type matches
   if (Config::typeId<int16_t>() != src_cfg.type()) {
     ConfigError err;
-    err << "Can not configure AFSK1200: Invalid type " << src_cfg.type()
+    err << "Can not configure FSKBase: Invalid type " << src_cfg.type()
         << ", expected " << Config::typeId<int16_t>();
     throw err;
   }
 
-  // The input sample rate
-  _sampleRate = src_cfg.sampleRate();
-
-  // Samples per bit
-  _corrLen = int(_sampleRate/_baud);
-  // Compute symbol rate:
-  _symbolRate = std::max(_baud, _baud*_corrLen);
-
-  // Samples per symbol (fractional):
-  _muIncr = _sampleRate/_symbolRate;
-  _mu     = _muIncr;
-  // Delayline for interpolating sub-sampler
-  _dl = Buffer<float>(2*8);
-  for (size_t i=0; i<(2*8); i++) { _dl[i] = 0; }
-  _dl_idx = 0;
-
-  // Assemble phase LUT:
-  _markLUT  = Buffer< std::complex<float> >(_corrLen);
-  _spaceLUT = Buffer< std::complex<float> >(_corrLen);
-
-  // Allocate ring-buffers for mark and space symbols
-  _markHist = Buffer< std::complex<float> >(_corrLen);
+  _corrLen   = int(src_cfg.sampleRate()/_baud);
+  _markLUT   = Buffer< std::complex<float> >(_corrLen);
+  _spaceLUT  = Buffer< std::complex<float> >(_corrLen);
+  _markHist  = Buffer< std::complex<float> >(_corrLen);
   _spaceHist = Buffer< std::complex<float> >(_corrLen);
-  _symbols   = Buffer<int16_t>(_corrLen);
 
   // Initialize LUTs and ring-buffers
   double phiMark=0, phiSpace=0;
   for (size_t i=0; i<_corrLen; i++) {
     _markLUT[i] = std::exp(std::complex<float>(0.0, phiMark));
     _spaceLUT[i] = std::exp(std::complex<float>(0.0, phiSpace));
-    phiMark  += (2.*M_PI*_Fmark)/_sampleRate;
-    phiSpace += (2.*M_PI*_Fspace)/_sampleRate;
+    phiMark  += (2.*M_PI*_Fmark)/src_cfg.sampleRate();
+    phiSpace += (2.*M_PI*_Fspace)/src_cfg.sampleRate();
     // Apply Window functions
     //_markLUT[i] *= (0.42 - 0.5*cos((2*M_PI*i)/_corrLen) + 0.08*cos((4*M_PI*i)/_corrLen));
     //_spaceLUT[i] *= (0.42 - 0.5*cos((2*M_PI*i)/_corrLen) + 0.08*cos((4*M_PI*i)/_corrLen));
-    _markHist[i] = 0; _spaceHist[i] = 0; _symbols[i] = 0;
+    _markHist[i] = 0; _spaceHist[i] = 0;
   }
-  // Ring buffer indices
-  _lutIdx = 0; _symbolIdx = 0;
+  // Ring buffer index
+  _lutIdx = 0;
 
-  // Get phase increment per symbol
-  _phase = 0; _omega = _baud/_symbolRate;
+  // Allocate output buffer
+  _buffer = Buffer<int8_t>(src_cfg.bufferSize());
+
+  LogMessage msg(LOG_DEBUG);
+  msg << "Config FSKDetector node: " << std::endl
+      << " sample/symbol rate: " << src_cfg.sampleRate() << " Hz" << std::endl
+      << " target baud rate: " << _baud << std::endl
+      << " approx. samples per bit: " << _corrLen;
+  Logger::get().log(msg);
+
+  // Forward config.
+  this->setConfig(Config(Traits<uint8_t>::scalarId, src_cfg.sampleRate(), src_cfg.bufferSize(), 1));
+}
+
+
+uint8_t
+FSKDetector::_process(int16_t sample) {
+  _markHist[_lutIdx] = float(sample)*_markLUT[_lutIdx];
+  _spaceHist[_lutIdx] = float(sample)*_spaceLUT[_lutIdx];
+  // inc _lutIdx, modulo LUT length
+  _lutIdx++; if (_lutIdx==_corrLen) { _lutIdx=0; }
+
+  std::complex<float> markSum(0), spaceSum(0);
+  for (size_t i=0; i<_corrLen; i++) {
+    markSum += _markHist[i];
+    spaceSum += _spaceHist[i];
+  }
+
+  float f = markSum.real()*markSum.real() +
+      markSum.imag()*markSum.imag() -
+      spaceSum.real()*spaceSum.real() -
+      spaceSum.imag()*spaceSum.imag();
+
+  return (f>0);
+}
+
+void
+FSKDetector::process(const Buffer<int16_t> &buffer, bool allow_overwrite) {
+  for (size_t i=0; i<buffer.size(); i++) {
+    _buffer[i] = _process(buffer[i]);
+  }
+  this->send(_buffer.head(buffer.size()), false);
+}
+
+
+BitStream::BitStream(float baud, Mode mode)
+  : Sink<uint8_t>(), Source(), _baud(baud), _mode(mode), _corrLen(0)
+{
+  // pass...
+}
+
+void
+BitStream::config(const Config &src_cfg) {
+  // Check if config is complete
+  if (!src_cfg.hasType() || !src_cfg.hasSampleRate()) { return; }
+
+  // Check if buffer type matches
+  if (Config::typeId<uint8_t>() != src_cfg.type()) {
+    ConfigError err;
+    err << "Can not configure FSKBitStreamBase: Invalid type " << src_cfg.type()
+        << ", expected " << Config::typeId<int16_t>();
+    throw err;
+  }
+
+  // # of symbols for each bit
+  _corrLen = int(src_cfg.sampleRate()/_baud);
+
+  // Config PLL for bit detection
+  _phase    = 0;
+  // exact bits per sample (<< 1)
+  _omega   = _baud/src_cfg.sampleRate();
   // PLL limits +/- 10% around _omega
   _omegaMin = _omega - 0.005*_omega;
   _omegaMax = _omega + 0.005*_omega;
   // PLL gain
-  _gainOmega = 0.0005;
+  _pllGain = 0.0005;
 
-  _symSum  = 0;
-  _lastSymSum = 0;
+  // symbol moving average
+  _symbols = Buffer<int8_t>(_corrLen);
+  for (size_t i=0; i<_corrLen; i++) { _symbols[i] = 0; }
+  _symIdx = 0; _symSum  = 0; _lastSymSum = 0;
 
-  // Allocate output buffer:
-  _buffer = Buffer<uint8_t>(src_cfg.bufferSize()/_corrLen + 1);
+  // Reset bit hist
+  _lastBits = 0;
+
+  // Allocate output buffer
+  _buffer = Buffer<uint8_t>(1+src_cfg.bufferSize()/_corrLen);
 
   LogMessage msg(LOG_DEBUG);
-  msg << "Config AFSK node: " << std::endl
-      << " input sample rate: " << _sampleRate << " Hz" << std::endl
-      << " samples per symbol: " << _muIncr << std::endl
-      << " symbols per bit: " << _corrLen << std::endl
-      << " symbol rate: " << _symbolRate << " Hz" << std::endl
-      << " bit rate: " << _symbolRate/_corrLen << " baud" << std::endl
-      << " phase incr/symbol: " << float(_omega) << std::endl
-      << " bit mode: " << ((TRANSITION == _mode) ? "transition" : "normal");
+  msg << "Config FSKBitStreamBase node: " << std::endl
+      << " input sample rate: " << src_cfg.sampleRate() << " Hz" << std::endl
+      << " baud rate: " << _baud << std::endl
+      << " samples per bit: " << 1./_omega << std::endl
+      << " phase incr/symbol: " << _omega;
   Logger::get().log(msg);
 
   // Forward config.
   this->setConfig(Config(Traits<uint8_t>::scalarId, _baud, _buffer.size(), 1));
 }
 
-
 void
-AFSK::process(const Buffer<int16_t> &buffer, bool allow_overwrite)
+BitStream::process(const Buffer<uint8_t> &buffer, bool allow_overwrite)
 {
-  size_t i=0, o=0;
-  while (i<buffer.size()) {
-    // Update sub-sampler
-    while ((_mu>=1) && (i<buffer.size())) {
-      _markHist[_lutIdx] = float(buffer[i])*_markLUT[_lutIdx];
-      _spaceHist[_lutIdx] = float(buffer[i])*_spaceLUT[_lutIdx];
-      // inc _lutIdx, modulo LUT length
-      _lutIdx++; if (_lutIdx==_corrLen) { _lutIdx=0; }
-      // Get symbol from FIR filter results
-      float symbol = _getSymbol();
-      // Put symbol into delay line
-      _dl[_dl_idx] = symbol; _dl[_dl_idx+8] = symbol;
-      _dl_idx = (_dl_idx+1)%8; _mu -= 1; i++;
-    }
-
-    if (_mu >= 1) { continue; }
-
-    // Get interpolated symbol
-    float symbol = interpolate(_dl.sub(_dl_idx, 8), _mu); _mu += _muIncr;
-    // store symbol
+  size_t o=0;
+  for (size_t i=0; i<buffer.size(); i++)
+  {
+    // store symbol & update _symSum and _lastSymSum
     _lastSymSum = _symSum;
-    _symSum -= _symbols[_symbolIdx];
-    _symbols[_symbolIdx] = ( (symbol>=0) ? 1 : -1 );
-    _symSum += _symbols[_symbolIdx];
-    _symbolIdx = ((_symbolIdx+1) % _corrLen);
+    _symSum -= _symbols[_symIdx];
+    _symbols[_symIdx] = ( buffer[i] ? 1 : -1 );
+    _symSum += _symbols[_symIdx];
+    _symIdx = ((_symIdx+1) % _corrLen);
+
     // Advance phase
     _phase += _omega;
 
-    // Sample bit
+    // Sample bit ...
     if (_phase >= 1) {
       // Modulo "2 pi", phase is defined on the interval [0,1)
       while (_phase>=1) { _phase -= 1; }
-      // Estimate bit by majority vote on all symbols
+      // Estimate bit by majority vote on all symbols (_symSum)
       _lastBits = ((_lastBits<<1) | (_symSum>0));
       // Put decoded bit in output buffer
       if (TRANSITION == _mode) {
         // transition -> 0; no transition -> 1
-        _buffer[o++] = ((_lastBits ^ (_lastBits >> 1) ^ 1) & 1);
+        _buffer[o++] = ((_lastBits ^ (_lastBits >> 1) ^ 0x1) & 0x1);
       } else {
         // mark -> 1, space -> 0
-        _buffer[o++] = _lastBits & 1;
+        _buffer[o++] = _lastBits & 0x1;
       }
     }
 
     // If there was a symbol transition
     if (((_lastSymSum < 0) && (_symSum>=0)) || ((_lastSymSum >= 0) && (_symSum<0))) {
       // Phase correction
-      /**std::cerr << "Transition at phi=" << _phase << std::endl
-                  << "  update omega from " << _omega << " to "; */
       // transition at [-pi,0] -> increase omega
-      if (_phase < 0.5) { _omega += _gainOmega*(0.5-_phase); }
+      if (_phase < 0.5) { _omega += _pllGain*(0.5-_phase); }
       // transition at [0,pi]  -> decrease omega
-      else { _omega -= _gainOmega*(_phase-0.5); }
+      else { _omega -= _pllGain*(_phase-0.5); }
       // Limit omega
       _omega = std::min(_omegaMax, std::max(_omegaMin, _omega));
-      //_phase += _gainOmega*(_phase-0.5);
-      /* std::cerr << _omega << std::endl; */
     }
   }
 
-  if (0 < o) { this->send(_buffer.head(o)); }
+  if (o>0) { this->send(_buffer.head(o)); }
 }
-

@@ -14,6 +14,9 @@ IF(SDR_WITH_PORTAUDIO)
  add_executable(sdr_rtty sdr_rtty.cc)
  target_link_libraries(sdr_rtty ${LIBS} libsdr)
 
+ add_executable(sdr_pocsag sdr_pocsag.cc)
+ target_link_libraries(sdr_pocsag ${LIBS} libsdr)
+
 ENDIF(SDR_WITH_PORTAUDIO)
 
 

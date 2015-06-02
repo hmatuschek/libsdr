@@ -12,7 +12,7 @@ namespace sdr {
  * at least 2000Hz and produces a bitstream with 31.25 Hz "sample rate". Use the @c Varicode node
  * to decode this bitstream to ASCII chars. The BPSK31 signal should be centered around 0Hz. This
  * node uses a simple PLL to adjust for small detunings.
- * @ingroup demod */
+ * @ingroup demods */
 template <class Scalar>
 class BPSK31: public Sink< std::complex<Scalar> >, public Source
 {

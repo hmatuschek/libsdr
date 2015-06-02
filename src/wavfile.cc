@@ -150,7 +150,7 @@ WavSource::open(const std::string &filename)
   LogMessage msg(LOG_DEBUG);
   msg << "Configured WavSource:" << std::endl
       << " file: " << filename << std::endl
-      << " type:"  << _type << std::endl
+      << " type: "  << _type << std::endl
       << " sample-rate: " << _sample_rate << std::endl
       << " frame-count: " << _frame_count << std::endl
       << " duration: " << _frame_count/_sample_rate << "s" << std::endl
