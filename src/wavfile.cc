@@ -135,7 +135,7 @@ WavSource::open(const std::string &filename)
   _file.read((char *)&chunk_size, 4); // read frame count
 
   // Configure source
-  _frame_count = chunk_size/(2*n_chanels);
+  _frame_count = chunk_size/(n_chanels*(bits_per_sample/8));
   if ((1 == n_chanels) && (8 == bits_per_sample)) { _type = Config::Type_u8; }
   else if ((1==n_chanels) && (16 == bits_per_sample)) { _type = Config::Type_s16; }
   else if ((2==n_chanels) && ( 8 == bits_per_sample)) { _type = Config::Type_cu8; }

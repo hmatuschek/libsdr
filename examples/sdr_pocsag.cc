@@ -40,6 +40,25 @@ static void __sigint_handler(int signo) {
   Queue::get().stop();
 }
 
+// Command line options
+static Options::Definition options[] = {
+  {"frequency", 'F', Options::FLOAT,
+   "Selects a RTL2832 as the source and specifies the frequency in Hz."},
+  {"correction", 0, Options::FLOAT,
+   "Specifies the frequency correction for the RTL2832 device in parts-per-million (ppm)."},
+  {"audio", 'a', Options::FLAG, "Selects the system audio as the source."},
+  {"file", 'f', Options::ANY, "Selects a WAV file as the source."},
+  {"monitor", 'M', Options::FLAG, "Enable sound monitor."},
+  {"invert", 0, Options::FLAG, "Inverts mark/space logic."},
+  {"help", 0, Options::FLAG, "Prints this help message."},
+  {0,0,Options::FLAG,0}
+};
+
+void print_help() {
+  std::cerr << "USAGE: sdr_pocsag SOURCE [OPTIONS]" << std::endl << std::endl;
+  Options::print_help(std::cerr, options);
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -50,34 +69,19 @@ int main(int argc, char *argv[])
   // Register signal handler:
   signal(SIGINT, __sigint_handler);
 
-  // Command line options
-  Options::Definition options[] = {
-    {"frequency", 'F', Options::FLOAT,
-     "Selects a RTL2832 as the source and specifies the frequency in Hz."},
-    {"audio", 'a', Options::FLAG, "Selects the system audio as the source."},
-    {"file", 'f', Options::ANY, "Selects a WAV file as the source."},
-    {"monitor", 'M', Options::FLAG, "Enable sound monitor."},
-    {"invert", 0, Options::FLAG, "Inverts mark/space logic."},
-    {"help", 0, Options::FLAG, "Prints this help message."},
-    {0,0,Options::FLAG,0}
-  };
-
   // Parse command line options.
   Options opts;
   if (! Options::parse(options, argc, argv, opts)) {
-    Options::print_help(std::cerr, options);
-    return -1;
+    print_help(); return -1;
   }
 
   if (opts.has("help")) {
-    Options::print_help(std::cout, options);
-    return 0;
+    print_help(); return 0;
   }
 
   // If no source has been selected
   if (! (opts.has("frequency")|opts.has("audio")|opts.has("file"))) {
-    Options::print_help(std::cerr, options);
-    return -1;
+    print_help(); return -1;
   }
 
   // Init audio system
@@ -106,6 +110,9 @@ int main(int argc, char *argv[])
   if (opts.has("frequency")) {
     // Assemble processing chain for the RTL2832 intput
     rtl_source   = new RTLSource(opts.get("frequency").toFloat());
+    if (opts.has("correction")) {
+      rtl_source->setFreqCorrection(opts.get("correction").toFloat());
+    }
     rtl_cast     = new AutoCast< std::complex<int16_t> >();
     rtl_baseband = new IQBaseBand<int16_t>(0, 12.5e3, 21, 0, 22050.0);
     rtl_demod    = new FMDemod<int16_t>();
