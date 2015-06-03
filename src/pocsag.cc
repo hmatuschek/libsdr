@@ -161,13 +161,14 @@ POCSAGDump::handleMessages() {
     Message msg = _queue.back(); _queue.pop_back();
     std::cerr << "POCSAG: @" << msg.address()
               << ", F=" << int(msg.function())
-              << ", bits=" << msg.bits() << std::endl;
-    if (msg.estimateText() >= msg.estimateNumeric()) {
-      std::cerr << " txt: " << msg.asText() << "" << std::endl;
+              << ", bits=" << msg.bits();
+    if (0 == msg.bits()) {
+      std::cerr << " (alert)" << std::endl;
+    } else if (msg.estimateText() >= msg.estimateNumeric()) {
+      std::cerr << " (txt)" << std::endl << " " << msg.asText() << std::endl;
     } else {
-      std::cerr << " num: " << msg.asNumeric() << std::endl;
+      std::cerr << " (num)" << std::endl << " " << msg.asNumeric() << std::endl;
     }
-    //std::cerr << " hex: " << msg.asHex() << std::endl;
   }
 }
 

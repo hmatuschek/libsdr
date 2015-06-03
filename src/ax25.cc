@@ -1,6 +1,8 @@
 #include "ax25.hh"
 #include "logger.hh"
 #include "traits.hh"
+#include <ctime>
+
 
 using namespace sdr;
 
@@ -49,10 +51,23 @@ static inline bool check_crc_ccitt(const uint8_t *buf, int cnt)
     return (crc & 0xffff) == 0xf0b8;
 }
 
+void
+unpackCall(const uint8_t *buffer, std::string &call, int &ssid, bool &addrExt) {
+  size_t length = 0; call.resize(6);
+  for (size_t i=0; i<6; i++) {
+    call.at(i) = char(buffer[i]>>1);
+    if (' ' != call.at(i)) { length++; }
+  }
+  call.resize(length);
+  ssid = int( (buffer[6] & 0x1f) >> 1);
+  addrExt = !bool(buffer[6] & 0x01);
+}
 
 
-AX25::AX25()
-  : Sink<uint8_t>(), Source()
+/* ******************************************************************************************** *
+ * Implementation of AX25 decoder
+ * ******************************************************************************************** */
+AX25::AX25() : Sink<uint8_t>()
 {
   // pass...
 }
@@ -77,15 +92,9 @@ AX25::config(const Config &src_cfg) {
   _state     = 0;
   _ptr       = _rxbuffer;
 
-  // Allocate output buffer
-  _buffer = Buffer<uint8_t>(512);
-
   LogMessage msg(LOG_DEBUG);
   msg << "Config AX.25 node.";
   Logger::get().log(msg);
-
-  // propergate config
-  this->setConfig(Config(Traits<uint8_t>::scalarId, 0, 512, 1));
 }
 
 void
@@ -104,16 +113,9 @@ AX25::process(const Buffer<uint8_t> &buffer, bool allow_overwrite)
           msg << "AX.25: Received invalid buffer: " << _rxbuffer;
           Logger::get().log(msg);
         } else {
-          bool addrExt;
-          std::string src, dst;
-          int srcSSID, dstSSID;
-          unpackCall(_rxbuffer, dst, dstSSID, addrExt);
-          unpackCall(_rxbuffer+7, src, srcSSID, addrExt);
-          std::cerr << "RX: " << src << "-" << srcSSID
-                    << " > " << dst << "-" << dstSSID  << std::endl
-                    << " " << _rxbuffer+14 << std::endl;
-          memcpy(_buffer.ptr(), _rxbuffer, _ptr-_rxbuffer);
-          this->send(_buffer.head(_ptr-_rxbuffer));
+          // Assemble message
+          Message msg(_rxbuffer, _ptr-_rxbuffer-2);
+          this->handleAX25Message(msg);
         }
       }
       // Receive data
@@ -158,16 +160,118 @@ AX25::process(const Buffer<uint8_t> &buffer, bool allow_overwrite)
   }
 }
 
+void
+AX25::handleAX25Message(const Message &message) {
+  // pass...
+}
+
+
+/* ******************************************************************************************** *
+ * Implementation of AX25Dump
+ * ******************************************************************************************** */
+AX25Dump::AX25Dump(std::ostream &stream)
+  : AX25(), _stream(stream)
+{
+  // pass...
+}
 
 void
-AX25::unpackCall(const uint8_t *buffer, std::string &call, int &ssid, bool &addrExt) {
-  size_t length = 0; call.resize(6);
-  for (size_t i=0; i<6; i++) {
-    call.at(i) = char(buffer[i]>>1);
-    if (' ' != call.at(i)) { length++; }
+AX25Dump::handleAX25Message(const Message &message) {
+  _stream << "AX25: " << message << std::endl;
+}
+
+
+/* ******************************************************************************************** *
+ * Implementation of AX25 Address
+ * ******************************************************************************************** */
+AX25::Address::Address()
+  : _call(), _ssid(0)
+{
+  // pass...
+}
+
+AX25::Address::Address(const std::string &call, size_t ssid)
+  : _call(call), _ssid(ssid)
+{
+  // pass...
+}
+
+AX25::Address::Address(const Address &other)
+  : _call(other._call), _ssid(other._ssid)
+{
+  // pass...
+}
+
+AX25::Address &
+AX25::Address::operator =(const Address &other) {
+  _call = other._call;
+  _ssid = other._ssid;
+  return *this;
+}
+
+std::ostream &
+sdr::operator <<(std::ostream &stream, const AX25::Address &addr) {
+  stream << addr.call() << "-" << addr.ssid();
+  return stream;
+}
+
+
+/* ******************************************************************************************** *
+ * Implementation of AX25 Message
+ * ******************************************************************************************** */
+AX25::Message::Message()
+  : _from(), _to(), _via(), _payload()
+{
+  // pass...
+}
+
+AX25::Message::Message(uint8_t *buffer, size_t length)
+  : _via(), _payload()
+{
+  std::string call; int ssid; bool addrExt;
+  // Get destination address
+  unpackCall(buffer, call, ssid, addrExt); buffer+=7; length -= 7;
+  _to   = Address(call, ssid);
+  // Get source address
+  unpackCall(buffer, call, ssid, addrExt); buffer+=7; length -= 7;
+  _from = Address(call, ssid);
+  while (addrExt) {
+    unpackCall(buffer, call, ssid, addrExt); buffer+=7; length -= 7;
+    _via.push_back(Address(call, ssid));
   }
-  call.resize(length);
-  ssid = int( (buffer[6] & 0x1f) >> 1);
-  addrExt = !bool(buffer[6] & 0x01);
+  // Store payload
+  _payload.resize(length);
+  for (size_t i=0; i<length; i++) { _payload[i] = char(buffer[i]); }
+}
+
+AX25::Message::Message(const Message &other)
+  : _from(other._from), _to(other._to), _via(other._via),
+    _payload(other._payload)
+{
+  // pass...
+}
+
+AX25::Message &
+AX25::Message::operator =(const Message &other) {
+  _from = other._from;
+  _to   = other._to;
+  _via  = other._via;
+  _payload = other._payload;
+  return *this;
+}
+
+
+std::ostream &
+sdr::operator <<(std::ostream &stream, const AX25::Message &msg) {
+  stream << msg.from() << " > " << msg.to();
+  if (0 < msg.via().size()) {
+    stream << " via " << msg.via()[0];
+    for (size_t i=1; i<msg.via().size(); i++) {
+      stream << ", " << msg.via()[i];
+    }
+  }
+  stream << " N=" << msg.payload().size() << std::endl;
+  stream << msg.payload();
+  return stream;
 }
 
