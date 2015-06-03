@@ -140,18 +140,15 @@ APRS::Message::Message(const AX25::Message &msg)
     return;
   }
 
-  if (_hasTime) {
-    if (! _readTime(offset)) { return; }
-  }
-  if (_hasLocation) {
-    if (! _readLocation(offset)) { return; }
-  }
+  if (_hasTime && (! _readTime(offset))) { _hasTime = false; _hasLocation = false; return; }
+  if (_hasLocation && (! _readLocation(offset))) { _hasLocation = false; return; }
   // Remaining text is comment
   if (offset < _payload.size()) {
     _comment = _payload.substr(offset);
     offset += _comment.size();
   }
 }
+
 
 bool
 APRS::Message::_readLocation(size_t &offset) {
