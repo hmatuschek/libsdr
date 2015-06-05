@@ -6,6 +6,7 @@ include(InstallHeadersWithDirectory)
 
 OPTION(BUILD_EXAMPLES "Build examples" OFF)
 OPTION(BUILD_UNIT_TESTS "Build unit tests" OFF)
+OPTION(BUILD_COMMANDLINETOOL "Build command line tool" ON)
 
 SET(libsdr_VERSION_MAJOR "0")
 SET(libsdr_VERSION_MINOR "1")
@@ -84,12 +85,18 @@ ENDIF(UNIX AND APPLE)
 
 # Add core library, and unit tests
 add_subdirectory(src)
+
 IF(BUILD_UNIT_TESTS)
  add_subdirectory(test)
 ENDIF(BUILD_UNIT_TESTS)
+
 IF(BUILD_EXAMPLES)
  add_subdirectory(examples)
 ENDIF(BUILD_EXAMPLES)
+
+IF(BUILD_COMMANDLINETOOL)
+ add_subdirectory(cmd)
+endif(BUILD_COMMANDLINETOOL)
 
 # Source distribution packages:
 set(CPACK_PACKAGE_VERSION_MAJOR ${libsdr_VERSION_MAJOR})

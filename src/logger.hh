@@ -10,7 +10,7 @@ namespace sdr {
 
 /** Specifies the possible log levels. */
 typedef enum {
-  LOG_DEBUG,   ///< Every thing that may be of interest.
+  LOG_DEBUG = 0,   ///< Every thing that may be of interest.
   LOG_INFO,    ///< Messages about state changes.
   LOG_WARNING, ///< Non critical errors (i.e. data loss).
   LOG_ERROR    ///< Critical errors.

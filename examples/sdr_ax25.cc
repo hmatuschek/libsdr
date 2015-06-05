@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
       rtl_source->setFreqCorrection(opts.get("correction").toFloat());
     }
     rtl_cast     = new AutoCast< std::complex<int16_t> >();
-    rtl_baseband = new IQBaseBand<int16_t>(0, 12.5e3, 21, 0, 22050.0);
+    rtl_baseband = new IQBaseBand<int16_t>(0, 15.0e3, 21, 0, 22050.0);
     rtl_demod    = new FMDemod<int16_t>();
     rtl_deemph   = new FMDeemph<int16_t>();
     // Connect nodes

@@ -109,9 +109,9 @@ AX25::process(const Buffer<uint8_t> &buffer, bool allow_overwrite)
       if ((1==_state) && ((_ptr - _rxbuffer) > 2)) {
         *_ptr = 0;
         if (! check_crc_ccitt(_rxbuffer, _ptr-_rxbuffer)) {
-          LogMessage msg(LOG_DEBUG);
+          /*LogMessage msg(LOG_DEBUG);
           msg << "AX.25: Received invalid buffer: " << _rxbuffer;
-          Logger::get().log(msg);
+          Logger::get().log(msg); */
         } else {
           // Assemble message
           Message msg(_rxbuffer, _ptr-_rxbuffer-2);
