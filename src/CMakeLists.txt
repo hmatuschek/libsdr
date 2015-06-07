@@ -1,13 +1,13 @@
 # Sources of libsdr
 set(LIBSDR_SOURCES
     buffer.cc node.cc queue.cc traits.cc portaudio.cc utils.cc wavfile.cc exception.cc logger.cc
-    psk31.cc options.cc fsk.cc ax25.cc aprs.cc baudot.cc pocsag.cc bch31_21.cc)
+    psk31.cc options.cc fsk.cc ax25.cc aprs.cc baudot.cc pocsag.cc bch31_21.cc http.cc)
 set(LIBSDR_HEADERS sdr.hh math.hh
     buffer.hh node.hh queue.hh buffernode.hh filternode.hh traits.hh autocast.hh
     siggen.hh portaudio.hh utils.hh wavfile.hh demod.hh firfilter.hh
     fftplan.hh fftplan_native.hh exception.hh baseband.hh freqshift.hh subsample.hh
     combine.hh logger.hh psk31.hh interpolate.hh operators.hh options.hh fsk.hh ax25.hh
-    aprs.hh baudot.hh pocsag.hh bch31_21.hh)
+    aprs.hh baudot.hh pocsag.hh bch31_21.hh http.hh)
 
 if(SDR_WITH_PORTAUDIO)
   set(LIBSDR_SOURCES ${LIBSDR_SOURCES} portaudio.cc)

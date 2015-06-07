@@ -29,7 +29,6 @@ template <> inline int16_t fast_atan2<uint8_t, int16_t>(uint8_t ua, uint8_t ub) 
 
 /** Implementation of atan2 approximation using integers. */
 template <> inline int16_t fast_atan2<int16_t, int16_t>(int16_t a, int16_t b) {
-  //return (1<<15)*(std::atan2(float(a), float(b))/M_PI);
   const int32_t pi4 = (1<<12);
   const int32_t pi34 = 3*(1<<12);
   int32_t aabs, angle;

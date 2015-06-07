@@ -241,34 +241,28 @@ protected:
   /** The actual demodulation. */
   void _process(const Buffer< std::complex<iScalar> > &in, const Buffer<oScalar> &out)
   {
-    // The last input value
-    std::complex<iScalar> last_value = _last_value;
     // calc first value
-    SScalar a = (SScalar(in[0].real())*SScalar(last_value.real()))/2
-        + (SScalar(in[0].imag())*SScalar(last_value.imag()))/2;
-    SScalar b = (SScalar(in[0].imag())*SScalar(last_value.real()))/2
-        - (SScalar(in[0].real())*SScalar(last_value.imag()))/2;
+    SScalar a = (SScalar(in[0].real())*SScalar(_last_value.real()))/2
+        + (SScalar(in[0].imag())*SScalar(_last_value.imag()))/2;
+    SScalar b = (SScalar(in[0].imag())*SScalar(_last_value.real()))/2
+        - (SScalar(in[0].real())*SScalar(_last_value.imag()))/2;
     a >>= Traits<iScalar>::shift; b >>= Traits<iScalar>::shift;
     // update last value
-    last_value = in[0];
+    _last_value = in[0];
     // calc output (prob. overwriting the last value)
     out[0] = fast_atan2<iScalar, oScalar>(a, b);
-    //out[0] = (1<<12)*(std::atan2(float(a),float(b))/M_PI);
 
     // Calc remaining values
     for (size_t i=1; i<in.size(); i++) {
-      a = (SScalar(in[i].real())*SScalar(last_value.real()))/2
-          + (SScalar(in[i].imag())*SScalar(last_value.imag()))/2;
-      b = (SScalar(in[i].imag())*SScalar(last_value.real()))/2
-          - (SScalar(in[i].real())*SScalar(last_value.imag()))/2;
+      a = (SScalar(in[i].real())*SScalar(_last_value.real()))/2
+          + (SScalar(in[i].imag())*SScalar(_last_value.imag()))/2;
+      b = (SScalar(in[i].imag())*SScalar(_last_value.real()))/2
+          - (SScalar(in[i].real())*SScalar(_last_value.imag()))/2;
       a >>= Traits<iScalar>::shift; b >>= Traits<iScalar>::shift;
-      last_value = in[i];
+      _last_value = in[i];
       out[i] = fast_atan2<iScalar,oScalar>(a, b);
-      //out[i] = (1<<12)*(std::atan2(float(a),float(b))/M_PI);
     }
 
-    // Store last value
-    _last_value = last_value;
     // propergate result
     this->send(out.head(in.size()));
   }
