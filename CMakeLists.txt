@@ -3,6 +3,7 @@ project(libsdr)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 include(InstallHeadersWithDirectory)
+include(LinkResources)
 
 OPTION(BUILD_EXAMPLES "Build examples" OFF)
 OPTION(BUILD_UNIT_TESTS "Build unit tests" OFF)

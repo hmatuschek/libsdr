@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <csignal>
+#include "sdr_cmd_resources.hh"
 
 using namespace sdr;
 
@@ -27,14 +28,6 @@ static void __sigint_handler(int signo) {
   server->stop(true);
 }
 
-const char *index_html = "<html>"
-    "<head></head>"
-    "<body>"
-    "<b>It is alive!</b>"
-    "<body>"
-    "</html>";
-
-
 int main(int argc, char *argv[]) {
   Application app;
   server = new http::Server(8080);
@@ -47,9 +40,8 @@ int main(int argc, char *argv[]) {
   signal(SIGINT, __sigint_handler);
 
   // Register callbacks
-  server->addStatic("/", index_html, "text/html");
+  server->addStatic("/", std::string(index_html, index_html_size), "text/html");
   server->addJSON("/echo", &app, &Application::echo);
-
   // start server
   server->start(true);
 
