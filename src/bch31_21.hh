@@ -1,7 +1,7 @@
 #ifndef __SDR_BCH31_21_HH__
 #define __SDR_BCH31_21_HH__
 
-#include <cinttypes>
+#include <inttypes.h>
 
 namespace sdr {
 
