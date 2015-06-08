@@ -35,13 +35,6 @@ const char *index_html = "<html>"
     "</html>";
 
 
-bool
-json_echo(const http::JSON &request, http::JSON &response) {
-  response = request;
-  return true;
-}
-
-
 int main(int argc, char *argv[]) {
   Application app;
   server = new http::Server(8080);

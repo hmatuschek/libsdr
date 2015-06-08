@@ -4,6 +4,7 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <iomanip>
 
 using namespace sdr;
 using namespace sdr::http;
@@ -48,7 +49,6 @@ inline bool is_id_part(char c) {
   return (is_alpha_num(c) || '_');
 }
 
-
 inline bool is_space(char c) {
   return (' ' == c);
 }
@@ -61,8 +61,19 @@ inline bool is_header_value_part(char c) {
   return ((c>=32) && (c<=127));
 }
 
+inline bool is_url_unreserved(char c) {
+  return (is_alpha_num(c) || ('-'==c) || ('_'==c) || ('.'==c) || ('~'==c));
+}
+
+inline bool is_url_reserved(char c) {
+  return (('!'==c) || ('*'==c) || ('\''==c) || ('('==c) || (')'==c) ||
+          (';'==c) || (':'==c) || ('@'==c) || ('&'==c) || ('='==c) ||
+          ('+'==c) || ('$'==c) || (','==c) || ('/'==c) || ('?'==c) ||
+          ('#'==c) || ('['==c) || (']'==c) || ('%'==c));
+}
+
 inline bool is_url_part(char c) {
-  return (is_alpha_num(c) || ('/'==c) || ('&'==c) || ('%'==c) || ('-'==c) || ('_'==c) || ('='==c));
+  return  is_url_unreserved(c) || is_url_reserved(c);
 }
 
 inline bool is_http_version_part(char c) {
@@ -215,7 +226,7 @@ Server::addHandler(Handler *handler) {
 /* ********************************************************************************************* *
  * Implementation of HTTPD::Connection
  * ********************************************************************************************* */
-http::Connection::Connection(Server *server, int socket)
+Connection::Connection(Server *server, int socket)
   : _server(server), _socket(socket)
 {
   // Start new thread to parse requests
@@ -227,13 +238,13 @@ http::Connection::Connection(Server *server, int socket)
   }
 }
 
-http::Connection::~Connection() {
+Connection::~Connection() {
   // Close the socket
   this->close(false);
 }
 
 void
-http::Connection::close(bool wait) {
+Connection::close(bool wait) {
   if (-1 != _socket) {
     int socket = _socket; _socket = -1;
     LogMessage msg(LOG_DEBUG);
@@ -249,12 +260,12 @@ http::Connection::close(bool wait) {
 }
 
 bool
-http::Connection::isClosed() const {
+Connection::isClosed() const {
   return ((-1 == _socket) && (0 != pthread_kill(_thread, 0)));
 }
 
 void *
-http::Connection::_main(void *ctx)
+Connection::_main(void *ctx)
 {
   Connection *self = (Connection *)ctx;
   // While socket is open
@@ -283,26 +294,26 @@ http::Connection::_main(void *ctx)
 /* ********************************************************************************************* *
  * Implementation of HTTPD::URL
  * ********************************************************************************************* */
-http::URL::URL()
+URL::URL()
   : _protocol(), _host(), _path(), _query()
 {
   // pass...
 }
 
-http::URL::URL(const std::string &proto, const std::string &host, const std::string &path)
+URL::URL(const std::string &proto, const std::string &host, const std::string &path)
   : _protocol(proto), _host(host), _path(path)
 {
   // pass...
 }
 
-http::URL::URL(const URL &other)
+URL::URL(const URL &other)
   : _protocol(other._protocol), _host(other._host), _path(other._path), _query(other._query)
 {
   // pass...
 }
 
-http::URL &
-http::URL::operator =(const URL &other) {
+URL &
+URL::operator =(const URL &other) {
   _protocol = other._protocol;
   _host     = other._host;
   _path     = other._path;
@@ -310,8 +321,8 @@ http::URL::operator =(const URL &other) {
   return *this;
 }
 
-http::URL
-http::URL::fromString(const std::string &url)
+URL
+URL::fromString(const std::string &url)
 {
   std::string text(url), proto, host, path, query_str;
 
@@ -365,26 +376,58 @@ http::URL::fromString(const std::string &url)
 
 
 std::string
-http::URL::toString() const {
+URL::toString() const {
   std::stringstream buffer;
+  // serialize protocol if present
   if (_protocol.size()) { buffer << _protocol << "://"; }
+  // serialize host if present
   if (_host.size()) { buffer << _host; }
+  // serialize path (even if not present)
   if (_path.size()) { buffer << _path; }
   else { buffer << "/"; }
+  // serialize query
   if (_query.size()) {
     buffer << "?";
     std::list< std::pair<std::string, std::string> >::const_iterator pair = _query.begin();
-    buffer << pair->first;
-    if (pair->second.size()) { buffer << "=" << pair->second; }
+    buffer << encode(pair->first);
+    if (pair->second.size()) { buffer << "=" << encode(pair->second); }
     pair++;
     for (; pair != _query.end(); pair++) {
-      buffer << "&" << pair->first;
-      if (pair->second.size()) { buffer << "=" << pair->second; }
+      buffer << "&" << encode(pair->first);
+      if (pair->second.size()) { buffer << "=" << encode(pair->second); }
     }
   }
   return buffer.str();
 }
 
+std::string
+URL::encode(const std::string &str) {
+  std::stringstream buffer;
+  for (size_t i=0; i<str.size(); i++) {
+    if (32 > str[i]) {
+      buffer << "%" << std::setw(2) << std::setfill('0') << std::hex << uint(str[i]);
+    } else if (127 > str[i]) {
+      buffer << "%" << std::setw(2) << std::setfill('0') << std::hex << uint(str[i]);
+    } else if (is_url_reserved(str[i])) {
+      buffer << "%" << std::setw(2) << std::setfill('0') << std::hex << uint(str[i]);
+    } else {
+      buffer << str[i];
+    }
+  }
+  return buffer.str();
+}
+
+std::string
+URL::decode(const std::string &str) {
+  std::stringstream buffer;
+  for (size_t i=0; i<str.size(); i++) {
+    // If there is a %XX string
+    if (('%' == str[i]) && (3 <= (str.size()-i))) {
+      buffer << char(strtol(str.substr(i+1, 2).c_str(), 0, 16));
+    } else { buffer << str[i]; }
+  }
+  return buffer.str();
+}
 
 
 /* ********************************************************************************************* *
@@ -397,21 +440,21 @@ typedef enum {
   REQUEST_END,
   START_HEADER, READ_HEADER, START_HEADER_VALUE, READ_HEADER_VALUE, END_HEADER,
   END_HEADERS
-} HttpdRequestState;
+} HttpRequestParserState;
 
 
-http::Request::Request(int socket)
+Request::Request(int socket)
   : _socket(socket), _method(HTTP_UNKNOWN)
 {
   // pass...
 }
 
 bool
-http::Request::parse() {
+Request::parse() {
   char c;
   std::stringstream buffer;
   std::string current_header_name;
-  HttpdRequestState state = READ_METHOD;
+  HttpRequestParserState state = READ_METHOD;
 
   // while getting a char from stream
   while (::read(_socket, &c, 1)) {
@@ -550,7 +593,7 @@ http::Request::parse() {
 }
 
 bool
-http::Request::isKeepAlive() const {
+Request::isKeepAlive() const {
   if (HTTP_1_1 == _version) { return true; }
   if (HTTP_1_0 == _version) {
     std::map<std::string, std::string>::const_iterator item = _headers.find("Connection");
@@ -561,18 +604,18 @@ http::Request::isKeepAlive() const {
 }
 
 bool
-http::Request::hasHeader(const std::string &name) const {
+Request::hasHeader(const std::string &name) const {
   return (0 != _headers.count(name));
 }
 
 std::string
-http::Request::header(const std::string &name) const {
+Request::header(const std::string &name) const {
   std::map<std::string, std::string>::const_iterator item = _headers.find(name);
   return item->second;
 }
 
 bool
-http::Request::readBody(std::string &body) const {
+Request::readBody(std::string &body) const {
   if (! hasContentLength()) { return false; }
   size_t N = contentLength(); body.reserve(N);
   char buffer[65536];
@@ -588,41 +631,41 @@ http::Request::readBody(std::string &body) const {
 /* ********************************************************************************************* *
  * Implementation of HTTPD::Response
  * ********************************************************************************************* */
-http::Response::Response(int socket)
+Response::Response(int socket)
   : _socket(socket), _status(STATUS_SERVER_ERROR), _close_connection(false)
 {
   // pass...
 }
 
 void
-http::Response::setStatus(Status status) {
+Response::setStatus(Status status) {
   _status = status;
 }
 
 bool
-http::Response::hasHeader(const std::string &name) const {
+Response::hasHeader(const std::string &name) const {
   return (0 != _headers.count(name));
 }
 
 std::string
-http::Response::header(const std::string &name) const {
+Response::header(const std::string &name) const {
   std::map<std::string, std::string>::const_iterator item = _headers.find(name);
   return item->second;
 }
 
 void
-http::Response::setHeader(const std::string &name, const std::string &value) {
+Response::setHeader(const std::string &name, const std::string &value) {
   _headers[name] = value;
 }
 
 void
-http::Response::setContentLength(size_t length) {
+Response::setContentLength(size_t length) {
   std::stringstream buffer; buffer << length;
   setHeader("Content-Length", buffer.str());
 }
 
 bool
-http::Response::send(const std::string &data) const {
+Response::send(const std::string &data) const {
   const char *ptr = data.c_str();
   size_t count = data.size();
   while (count) {
@@ -634,7 +677,7 @@ http::Response::send(const std::string &data) const {
 }
 
 bool
-http::Response::sendHeaders() const {
+Response::sendHeaders() const {
   std::stringstream buffer;
   buffer << "HTTP/1.1 ";
   // Serialize response status
@@ -657,12 +700,12 @@ http::Response::sendHeaders() const {
 /* ********************************************************************************************* *
  * Implementation of HTTPD::Handler
  * ********************************************************************************************* */
-http::Handler::Handler()
+Handler::Handler()
 {
   // pass...
 }
 
-http::Handler::~Handler() {
+Handler::~Handler() {
   // pass...
 }
 
@@ -670,23 +713,23 @@ http::Handler::~Handler() {
 /* ********************************************************************************************* *
  * Implementation of HTTPD::StaticHandler
  * ********************************************************************************************* */
-http::StaticHandler::StaticHandler(const std::string &url, const std::string &text, const std::string mimeType)
+StaticHandler::StaticHandler(const std::string &url, const std::string &text, const std::string mimeType)
   : Handler(), _url(url), _mimeType(mimeType), _text(text)
 {
   // pass..
 }
 
-http::StaticHandler::~StaticHandler() {
+StaticHandler::~StaticHandler() {
   // pass...
 }
 
 bool
-http::StaticHandler::match(const Request &request) {
+StaticHandler::match(const Request &request) {
   return _url == request.url().path();
 }
 
 void
-http::StaticHandler::handle(const Request &request, Response &response) {
+StaticHandler::handle(const Request &request, Response &response) {
   response.setStatus(Response::STATUS_OK);
   if (_mimeType.size()) {
     response.setHeader("Content-type", _mimeType);
@@ -700,14 +743,14 @@ http::StaticHandler::handle(const Request &request, Response &response) {
 /* ********************************************************************************************* *
  * Implementation of HTTPD::JSONHandler
  * ********************************************************************************************* */
-http::JSONHandler::JSONHandler(const std::string &url)
+JSONHandler::JSONHandler(const std::string &url)
   : http::Handler(), _url(url)
 {
   // pass...
 }
 
 bool
-http::JSONHandler::match(const http::Request &request) {
+JSONHandler::match(const http::Request &request) {
   if (http::HTTP_POST != request.method()) { return false; }
   if (request.url().path() != _url) { return false; }
   if (! request.hasHeader("Content-Type")) { return false; }
@@ -715,7 +758,7 @@ http::JSONHandler::match(const http::Request &request) {
 }
 
 void
-http::JSONHandler::handle(const http::Request &request, http::Response &response) {
+JSONHandler::handle(const http::Request &request, http::Response &response) {
   std::string body;
   if (! request.readBody(body)) {
     response.setStatus(http::Response::STATUS_BAD_REQUEST);

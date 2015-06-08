@@ -1,4 +1,62 @@
-/** @defgroup httpd A rather trivia HTTP daemon implementation. */
+/** @defgroup http A rather trivia HTTP daemon implementation.
+ *
+ * This module collects some classes allowing to implement a simple HTTP server to serve static
+ * and dynamic content. The central class is the @c Server class which dispatches incomming
+ * requests to the registered @c Handler instances.
+ *
+ * There are several specializations of the @c Handler class avaliable suited to perform specific
+ * tasks. I.e. the @c StaticHandler serves some static content (i.e. strings) while the
+ * @c DelegateJSONHandler allows to implement a REST api easily.
+ *
+ * An example of a server, serving a static index page and provides a trivial JSON echo method.
+ * \code
+ * #include "http.hh"
+ * #include "logger.hh"
+ *
+ * using namespace sdr;
+ *
+ * // Implements an application, a collection of methods being called from the http::Server.
+ * class Application {
+ * public:
+ *   // contstructor.
+ *   Application() {}
+ *
+ *   // The callback to handle the JSON echo api.
+ *   bool echo(const http::JSON &request, http::JSON &result) {
+ *     // just echo
+ *     result = request;
+ *     // signal success
+ *     return true;
+ *   }
+ * };
+ *
+ * // Static content
+ * const char *index_html = "<html> ... </html>";
+ *
+ *
+ * int main(int argc, char *argv[]) {
+ *   // install log handler
+ *   sdr::Logger::get().addHandler(
+ *      new sdr::StreamLogHandler(std::cerr, sdr::LOG_DEBUG));
+ *
+ *   // serve on port 8080
+ *   http::Server server(8080);
+ *
+ *   // Instantiate application
+ *   Application app;
+ *
+ *   // Register static content handlers
+ *   server.addStatic("/", index_html, "text/html");
+ *   // Register JSON echo method
+ *   server.addJSON("/echo", &app, &Application::echo);
+ *
+ *   // Start server
+ *   server.start(true);
+ *
+ *   return 0;
+ * }
+ * \endcode
+ */
 
 #ifndef __SDR_HTTPD_HH__
 #define __SDR_HTTPD_HH__
@@ -23,6 +81,8 @@ class Server;
 
 
 /** Represents a JSON object.
+ * JSON is a popular means to implement remote procedure calls (RPCs) using java script. JSON is
+ * valid java script code and allows to transfer numbers, string, lists and objects.
  * @ingroup http */
 class JSON
 {
@@ -114,19 +174,20 @@ protected:
 /** Lists the possible HTTP methods.
  * @ingroup http */
 typedef enum {
-  HTTP_UNKNOWN,
-  HTTP_GET,
-  HTTP_HEAD,
-  HTTP_POST
+  HTTP_UNKNOWN,   ///< Unknown method. Results into an invalid request.
+  HTTP_GET,       ///< The get method.
+  HTTP_HEAD,      ///< The head method.
+  HTTP_POST       ///< The post method.
 } Method;
 
 /** Lists the possible HTTP versions.
  * @ingroup http */
 typedef enum {
-  UNKNOWN_VERSION,
-  HTTP_1_0,
-  HTTP_1_1
+  UNKNOWN_VERSION, ///< Unknown http version. Results into an invalid request.
+  HTTP_1_0,        ///< HTTP/1.0
+  HTTP_1_1         ///< HTTP/1.1
 } Version;
+
 
 /** Represents a URL.
  * @ingroup http */
@@ -147,6 +208,11 @@ public:
   static URL fromString(const std::string &url);
   /** Serializes the URL into a string. */
   std::string toString() const;
+
+  /** Encode a string. */
+  static std::string encode(const std::string &str);
+  /** Decodes a string. */
+  static std::string decode(const std::string &str);
 
   /** Returns @c true if the URL specifies a protocol. */
   inline bool hasProtocol() const { return (0 != _protocol.size()); }
@@ -242,10 +308,10 @@ class Response
 public:
   /** Defines all possible responses. */
   typedef enum {
-    STATUS_OK = 200,
-    STATUS_BAD_REQUEST = 400,
-    STATUS_NOT_FOUND = 404,
-    STATUS_SERVER_ERROR = 500
+    STATUS_OK = 200,           ///< OK.
+    STATUS_BAD_REQUEST = 400,  ///< Your fault.
+    STATUS_NOT_FOUND = 404,    ///< Resource not found.
+    STATUS_SERVER_ERROR = 500  ///< My fault.
   } Status;
 
 public:
@@ -451,7 +517,7 @@ protected:
 
 
 /** Implements a trivial HTTP/1.1 server.
- * @ingroup httpd*/
+ * @ingroup http */
 class Server
 {
 public:
@@ -461,9 +527,11 @@ public:
   /** Destructor. */
   ~Server();
 
-  /** Starts the server. */
+  /** Starts the server.
+   * If @c wait is @c true, the call to this method will bock until the server thread stops. */
   void start(bool wait=false);
-  /** Stops the server. */
+  /** Stops the server.
+   * If @c wait is @c true, the call will block until the server thread stopped. */
   void stop(bool wait=false);
   /** Wait for the server thread to join. */
   void wait();
