@@ -184,9 +184,15 @@ Server::_listen_main(void *ctx) {
     try { self->_connections.insert(new Connection(self, socket)); }
     catch (...) { }
     // Free closed connections
+    std::list<Connection *> closed_connections;
     std::set<Connection *>::iterator item = self->_connections.begin();
     for (; item != self->_connections.end(); item++) {
-      if ((*item)->isClosed()) { delete *item; item = self->_connections.erase(item); }
+      if ((*item)->isClosed()) { closed_connections.push_back(*item); }
+    }
+    std::list<Connection *>::iterator citem = closed_connections.begin();
+    for (; citem != closed_connections.end(); citem++) {
+      self->_connections.erase(*citem);
+      delete *citem;
     }
   }
   return 0;
@@ -252,7 +258,7 @@ Connection::close(bool wait) {
     Logger::get().log(msg);
     ::close(socket);
   }
-  if (wait && (0 == pthread_kill(_thread, 0))) {
+  if (wait) {
     // Wait for the thread to exit.
     void *ret = 0;
     pthread_join(_thread, &ret);
@@ -261,7 +267,7 @@ Connection::close(bool wait) {
 
 bool
 Connection::isClosed() const {
-  return ((-1 == _socket) && (0 != pthread_kill(_thread, 0)));
+  return (-1 == _socket);
 }
 
 void *

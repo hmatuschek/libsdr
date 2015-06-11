@@ -45,12 +45,12 @@ sdr::sha1_init(sha1 *s) {
 }
 
 uint32_t
-sdr::sha1_rol32(uint32_t number, uint8_t bits) {
+sha1_rol32(uint32_t number, uint8_t bits) {
 	return ((number << bits) | (number >> (32-bits)));
 }
 
 void
-sdr::sha1_hashBlock(sha1 *s) {
+sha1_hashBlock(sha1 *s) {
 	uint8_t i;
 	uint32_t a,b,c,d,e,t;
 
@@ -88,7 +88,7 @@ sdr::sha1_hashBlock(sha1 *s) {
 }
 
 void
-sdr::sha1_addUncounted(sha1 *s, uint8_t data) {
+sha1_addUncounted(sha1 *s, uint8_t data) {
 	uint8_t * const b = (uint8_t*) s->buffer;
 #ifdef SHA_BIG_ENDIAN
 	b[s->bufferOffset] = data;
@@ -114,7 +114,7 @@ sdr::sha1_write(sha1 *s, const char *data, size_t len) {
 }
 
 void
-sdr::sha1_pad(sha1 *s) {
+sha1_pad(sha1 *s) {
 	// Implement SHA-1 padding (fips180-2 §5.1.1)
 
 	// Pad with 0x80 followed by 0x00 until the end of the block
@@ -159,19 +159,19 @@ sdr::sha1_result(sha1 *s) {
 void
 sdr::sha1_initHmac(sha1 *s, const uint8_t* key, int keyLength) {
 	uint8_t i;
-  memset(s->keyBuffer, 0,SDR_SHA1_BLOCK_LENGTHH);
-  if (keyLength >SDR_SHA1_BLOCK_LENGTHH) {
+  memset(s->keyBuffer, 0,SDR_SHA1_BLOCK_LENGTH);
+  if (keyLength >SDR_SHA1_BLOCK_LENGTH) {
 		// Hash long keys
 		sha1_init(s);
 		for (;keyLength--;) sha1_writebyte(s, *key++);
-    memcpy(s->keyBuffer, sha1_result(s),SDR_SHA1_HASH_LENGTHH);
+    memcpy(s->keyBuffer, sha1_result(s),SDR_SHA1_HASH_LENGTH);
 	} else {
 		// Block length keys are used as is
 		memcpy(s->keyBuffer, key, keyLength);
 	}
 	// Start inner hash
 	sha1_init(s);
-  for (i=0; iSDR_SHA1_BLOCK_LENGTHH; i++) {
+  for (i=0; i<SDR_SHA1_BLOCK_LENGTH; i++) {
 		sha1_writebyte(s, s->keyBuffer[i] ^ HMAC_IPAD);
 	}
 }
@@ -180,10 +180,10 @@ uint8_t*
 sdr::sha1_resultHmac(sha1 *s) {
 	uint8_t i;
 	// Complete inner hash
-  memcpy(s->innerHash,sha1_result(s)SDR_SHA1_HASH_LENGTHH);
+  memcpy(s->innerHash,sha1_result(s), SDR_SHA1_HASH_LENGTH);
 	// Calculate outer hash
 	sha1_init(s);
-  for (i=0; iSDR_SHA1_BLOCK_LENGTHH; i++) sha1_writebyte(s, s->keyBuffer[i] ^ HMAC_OPAD);
-  for (i=0; iSDR_SHA1_HASH_LENGTHH; i++) sha1_writebyte(s, s->innerHash[i]);
+  for (i=0; i<SDR_SHA1_BLOCK_LENGTH; i++) sha1_writebyte(s, s->keyBuffer[i] ^ HMAC_OPAD);
+  for (i=0; i<SDR_SHA1_HASH_LENGTH; i++) sha1_writebyte(s, s->innerHash[i]);
 	return sha1_result(s);
 }

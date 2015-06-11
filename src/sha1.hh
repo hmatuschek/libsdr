@@ -1,7 +1,8 @@
 #ifndef __SDR_SHA1_HH__
 #define __SDR_SHA1_HH__
 
-#include <stdint.h>
+#include <memory.h>
+#include <inttypes.h>
 
 namespace sdr {
 
