@@ -98,20 +98,13 @@ inline http::Version to_version(const std::string &version) {
  * Implementation of Server
  * ********************************************************************************************* */
 Server::Server(uint port)
-  : _port(port), _socket(-1)
+  : _port(port), _socket(-1), _queue()
 {
-  // pass...
+  pthread_mutex_init(&_queue_lock, 0);
 }
 
 Server::~Server() {
-  _is_running = false;
-  // Close all connections
-  std::set<Connection *>::iterator con = _connections.begin();
-  for (; con != _connections.end(); con++) {
-    // Wait for the connection to close
-    (*con)->close(true);
-    delete *con;
-  }
+  _is_running = false;  
   // Free all handler
   std::list<Handler *>::iterator item = _handler.begin();
   for (; item != _handler.end(); item++) { delete *item; }
@@ -157,49 +150,70 @@ Server::start(bool wait) {
 void
 Server::stop(bool wait) {
   _is_running = false;
-  // Close all open connections
-  std::set<Connection *>::iterator con = _connections.begin();
-  for (; con != _connections.end(); con++) {
-    (*con)->close(wait);
-  }
   // Close the socket we listen on
   ::close(_socket); _socket = -1;
+  // wait for server to join
+  if (wait) { this->wait(); }
 }
 
 void
 Server::wait() {
   void *ret=0;
   pthread_join(_thread, &ret);
+  // wait for all handlers to join
+  while (_threads.size()) {
+    void *ret = 0;
+    pthread_join(*_threads.begin(), &ret);
+  }
 }
 
 void *
-Server::_listen_main(void *ctx) {
+Server::_listen_main(void *ctx)
+{
+  // Get server instance
   Server *self = (Server *)ctx;
-  while (self->_is_running) {
+  // Whil server is running
+  while (self->_is_running)
+  {
+    // Wait for incomming connections
     listen(self->_socket, 5);
+
+    // Create socket to client
     struct sockaddr_in cli_addr;
     socklen_t clilen = sizeof(cli_addr);
     int socket = accept(self->_socket, (struct sockaddr *) &cli_addr, &clilen);
     if (socket < 0) { continue; }
-    try { self->_connections.insert(new Connection(self, socket)); }
-    catch (...) { }
-    // Free closed connections
-    std::list<Connection *> closed_connections;
-    std::set<Connection *>::iterator item = self->_connections.begin();
-    for (; item != self->_connections.end(); item++) {
-      if ((*item)->isClosed()) { closed_connections.push_back(*item); }
-    }
-    std::list<Connection *>::iterator citem = closed_connections.begin();
-    for (; citem != closed_connections.end(); citem++) {
-      self->_connections.erase(*citem);
-      delete *citem;
+
+    // Construct connection object from socket
+    try {
+      pthread_mutex_lock(&self->_queue_lock);
+      self->_queue.push_back(Connection(self, socket));
+      pthread_t thread;
+      pthread_create(&thread, 0, &Server::_connection_main, self);
+      self->_threads.insert(thread);
+      pthread_mutex_unlock(&self->_queue_lock);
+    } catch (...) {
+      pthread_mutex_unlock(&self->_queue_lock);
     }
   }
   return 0;
 }
 
+void *
+Server::_connection_main(void *ctx) {
+  Server *self = (Server *)ctx;
+  pthread_mutex_lock(&self->_queue_lock);
+  Connection con = self->_queue.front(); self->_queue.pop_front();
+  pthread_mutex_unlock(&self->_queue_lock);
+  con.main();
+  // Remove thread from list of running threads
+  self->_threads.erase(pthread_self());
+  return 0;
+}
+
 void
-Server::dispatch(const Request &request, Response &response) {
+Server::dispatch(const Request &request, Response &response)
+{
   LogMessage msg(LOG_DEBUG);
   msg << "httpd: ";
   switch (request.method()) {
@@ -230,70 +244,120 @@ Server::addHandler(Handler *handler) {
 
 
 /* ********************************************************************************************* *
- * Implementation of HTTPD::Connection
+ * Implementation of http::Connection & http::ConnectionObj
  * ********************************************************************************************* */
-Connection::Connection(Server *server, int socket)
-  : _server(server), _socket(socket)
+ConnectionObj::ConnectionObj(Server *server, int cli_socket)
+  : server(server), socket(cli_socket), refcount(1)
 {
-  // Start new thread to parse requests
-  if (pthread_create(&_thread, 0, &Connection::_main, (void *)this)) {
-    ::close(_socket); _socket = -1;
-    RuntimeError err;
-    err << "httpd: Can not create thread for connection.";
-    throw err;
+  // pass...
+}
+
+ConnectionObj::~ConnectionObj() {
+  ::close(socket); socket=-1;
+}
+
+ConnectionObj *
+ConnectionObj::ref() {
+  refcount++; return this;
+}
+
+void
+ConnectionObj::unref() {
+  refcount--;
+  if (0 == refcount) {
+    delete this;
   }
+}
+
+Connection::Connection()
+  : _object(0)
+{
+  // pass...
+}
+
+Connection::Connection(Server *server, int socket)
+  : _object(new ConnectionObj(server, socket))
+{
+  // pass...
+}
+
+Connection::Connection(const Connection &other)
+  : _object(other._object)
+{
+  if (_object) { _object->ref(); }
 }
 
 Connection::~Connection() {
   // Close the socket
-  this->close(false);
+  if (_object) { _object->unref(); }
 }
+
+Connection &
+Connection::operator =(const Connection &other) {
+  if (_object) { _object->unref(); }
+  _object = other._object;
+  if (_object) { _object->ref(); }
+  return *this;
+}
+
 
 void
 Connection::close(bool wait) {
-  if (-1 != _socket) {
-    int socket = _socket; _socket = -1;
+  if (0 == _object) { return; }
+  if (-1 != _object->socket) {
+    int socket = _object->socket; _object->socket = -1;
     LogMessage msg(LOG_DEBUG);
     msg << "httpd: Close connection " << socket << ".";
     Logger::get().log(msg);
     ::close(socket);
   }
-  if (wait) {
-    // Wait for the thread to exit.
-    void *ret = 0;
-    pthread_join(_thread, &ret);
-  }
 }
 
 bool
 Connection::isClosed() const {
-  return (-1 == _socket);
+  if (0 == _object) { return true; }
+  return (-1 == _object->socket);
 }
 
-void *
-Connection::_main(void *ctx)
+bool
+Connection::send(const std::string &data) const {
+  const char *ptr = data.c_str();
+  size_t count = data.size();
+  while (count) {
+    int c = this->write(ptr, count);
+    if (c < 0) { return false; }
+    count -= c; ptr += c;
+  }
+  return true;
+}
+
+
+void
+Connection::main()
 {
-  Connection *self = (Connection *)ctx;
+  int error = 0; socklen_t errorlen = sizeof(error);
   // While socket is open
-  int error = 0; socklen_t errorlen = sizeof (error);
-  while (0 == getsockopt(self->_socket, SOL_SOCKET, SO_ERROR, &error, &errorlen)) {
-    Request request(self->_socket);
-    Response response(self->_socket);
-    // Parse request
-    if (!request.parse()) {
-      // On parser error or no keep-alive -> exit
-      self->close(); return 0;
+  while (0 == getsockopt(_object->socket, SOL_SOCKET, SO_ERROR, &error, &errorlen)) {
+    // Contstruct request & reponse instances
+    Request request(*this);
+    Response response(*this);
+    // try to parse request
+    if (! request.parse()) {
+      // On parser error close connection -> exit
+      this->close(false); return;
     }
     // on success -> dispatch request by server
-    self->_server->dispatch(request, response);
-    // If the connection is kept alive -> continue
-    if ((! request.isKeepAlive()) || response.closeConnection()) {
-      // Signal server to close connection
-      self->close(self); return 0;
+    _object->server->dispatch(request, response);
+    // on protocol update
+    if (this->protocolUpgrade()) { return; }
+    // If the connection is keep-alive -> continue
+    if (! request.isKeepAlive()) {
+      // close connection -> exit
+      this->close(false); return;
     }
   }
-  // Signal server to close connection
-  self->close(self); return 0;
+  // Close connection
+  this->close(false);
 }
 
 
@@ -449,8 +513,8 @@ typedef enum {
 } HttpRequestParserState;
 
 
-Request::Request(int socket)
-  : _socket(socket), _method(HTTP_UNKNOWN)
+Request::Request(const Connection &connection)
+  : _connection(connection), _method(HTTP_UNKNOWN)
 {
   // pass...
 }
@@ -463,7 +527,7 @@ Request::parse() {
   HttpRequestParserState state = READ_METHOD;
 
   // while getting a char from stream
-  while (::read(_socket, &c, 1)) {
+  while (_connection.read(&c, 1)) {
     switch (state) {
     case READ_METHOD:
       if (is_space(c)) {
@@ -626,7 +690,7 @@ Request::readBody(std::string &body) const {
   size_t N = contentLength(); body.reserve(N);
   char buffer[65536];
   while (N>0) {
-    int res = ::read(_socket, buffer, std::min(N, size_t(65536)));
+    int res = _connection.read(buffer, std::min(N, size_t(65536)));
     if (res>=0) { body.append(buffer, size_t(res)); N -= res; }
     else { return false; }
   }
@@ -637,8 +701,8 @@ Request::readBody(std::string &body) const {
 /* ********************************************************************************************* *
  * Implementation of HTTPD::Response
  * ********************************************************************************************* */
-Response::Response(int socket)
-  : _socket(socket), _status(STATUS_SERVER_ERROR), _close_connection(false)
+Response::Response(const Connection &connection)
+  : _connection(connection), _status(STATUS_SERVER_ERROR), _close_connection(false)
 {
   // pass...
 }
@@ -671,18 +735,6 @@ Response::setContentLength(size_t length) {
 }
 
 bool
-Response::send(const std::string &data) const {
-  const char *ptr = data.c_str();
-  size_t count = data.size();
-  while (count) {
-    int c = ::write(_socket, ptr, count);
-    if (c < 0) { return false; }
-    count -= c; ptr += c;
-  }
-  return true;
-}
-
-bool
 Response::sendHeaders() const {
   std::stringstream buffer;
   buffer << "HTTP/1.1 ";
@@ -699,7 +751,7 @@ Response::sendHeaders() const {
     buffer << item->first << ": " << item->second << "\r\n";
   }
   buffer << "\r\n";
-  return send(buffer.str());
+  return _connection.send(buffer.str());
 }
 
 
@@ -742,7 +794,7 @@ StaticHandler::handle(const Request &request, Response &response) {
   }
   response.setContentLength(_text.size());
   response.sendHeaders();
-  response.send(_text);
+  response.connection().send(_text);
 }
 
 
@@ -785,7 +837,7 @@ JSONHandler::handle(const http::Request &request, http::Response &response) {
     result.serialize(result_string);
     response.setContentLength(result_string.size());
     response.sendHeaders();
-    response.send(result_string);
+    response.connection().send(result_string);
   } else {
     response.setStatus(http::Response::STATUS_BAD_REQUEST);
     response.setContentLength(0);

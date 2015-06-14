@@ -15,7 +15,7 @@
  *
  * using namespace sdr;
  *
- * // Implements an application, a collection of methods being called from the http::Server.
+ * // Implements an application, a collection of methods being called by the http::Server.
  * class Application {
  * public:
  *   // contstructor.
@@ -251,16 +251,89 @@ protected:
 };
 
 
+struct ConnectionObj
+{
+public:
+  ConnectionObj(Server *server, int cli_socket);
+  ~ConnectionObj();
+
+  ConnectionObj *ref();
+  void unref();
+
+public:
+  /** A weak reference to the server instance. */
+  Server *server;
+  /** The connection socket. */
+  int socket;
+  /** If @c true (i.e. set by a handler), the http parser thread will exit without closing
+   * the connection. This allows to "take-over" the tcp connection to the client by the request
+   * handler. */
+  bool protocol_upgrade;
+  /** Reference counter. */
+  size_t refcount;
+};
+
+
+/** Implements a HTTP connection to a client.
+ * @c ingroup http */
+class Connection
+{
+public:
+  /** Empty constructor. */
+  Connection();
+  /** Constructor. */
+  Connection(Server *server, int socket);
+  /** Copy constructor. Implements reference counting. */
+  Connection(const Connection &other);
+  /** Destructor. */
+  ~Connection();
+
+  Connection &operator=(const Connection &other);
+
+  /** Closes the connection.
+   * If @c wait is @c true, the method will wait until the thread listening for incomming
+   * request joined. */
+  void close(bool wait=false);
+  /** Returns @c true if the connection is closed. */
+  bool isClosed() const;
+
+  /** Sets the protocol-update flag. */
+  inline void setProtocolUpgrade() const { _object->protocol_upgrade = true; }
+  inline bool protocolUpgrade() const { return _object->protocol_upgrade; }
+
+  inline ssize_t write(const void *data, size_t n) const {
+    if (0 == _object) { return -1; }
+    return ::write(_object->socket, data, n);
+  }
+
+  inline ssize_t read(void *data, size_t n) const {
+    if (0 == _object) { return -1; }
+    return ::read(_object->socket, data, n);
+  }
+
+  bool send(const std::string &data) const;
+
+  /** Main loop for incomming requests. */
+  void main();
+
+protected:
+  ConnectionObj *_object;
+};
+
+
 /** Represents a HTTP request.
  * @ingroup http */
 class Request
 {
 public:
   /** Constructor. */
-  Request(int socket);
+  Request(const Connection &connection);
 
   /** Parses the HTTP request header, returns @c true on success. */
   bool parse();
+
+  /** Return the connection to the client. */
+  inline const Connection &connection() const { return _connection; }
 
   /** Returns @c true if the connection to the client is kept alive after the response
      * has been send. */
@@ -280,17 +353,13 @@ public:
   inline Method method() const { return _method; }
   /** Returns the request URL. */
   inline const URL &url() const { return _url; }
-  /** Allows to read data from the connection (i.e. the request body). */
-  inline int read(const char *data, size_t size) {
-    return ::read(_socket, (void *)data, size);
-  }
   /** Reads the complete body (if Content-Length header is present).
-     * Retruns @c true on success.*/
+   * Retruns @c true on success.*/
   bool readBody(std::string &body) const;
 
 protected:
   /** The connection socket. */
-  int _socket;
+  Connection _connection;
   /** The request method. */
   Method _method;
   /** The HTTP version. */
@@ -315,9 +384,11 @@ public:
   } Status;
 
 public:
-  /** Constructor.
-   * @param socket Specifies the socket over which the response will be send.*/
-  Response(int socket);
+  /** Constructor. */
+  Response(const Connection &connnection);
+
+  /** Return the connection to the client. */
+  inline const Connection &connection() const { return _connection; }
 
   /** Specifies the response code. */
   void setStatus(Status status);
@@ -333,56 +404,15 @@ public:
   /** Sends the response code and all defined headers. */
   bool sendHeaders() const;
 
-  /** Sends some data through the socket. To send the response body, call
-   * @c sendHeaders() first. */
-  bool send(const std::string &data) const;
-
-  /** Returns @c true if the connection will be closed after the response has been send.
-   * @c I.e. if there was an error. */
-  inline bool closeConnection() const { return _close_connection; }
-  /** Marks that the connection will be closed after the response has been send. */
-  inline void setCloseConnection() { _close_connection = true; }
-
 protected:
   /** The socket over which the response will be send. */
-  int _socket;
+  Connection _connection;
   /** The response code. */
   Status _status;
   /** The response headers. */
   std::map<std::string, std::string> _headers;
   /** If @c true, the connection will be closed after the response has been send. */
   bool _close_connection;
-};
-
-
-/** Implements a HTTP connection to a client.
- * @c ingroup http */
-class Connection
-{
-public:
-  /** Constructor. */
-  Connection(Server *server, int socket);
-  /** Destructor. */
-  ~Connection();
-
-  /** Closes the connection.
-   * If @c wait is @c true, the method will wait until the thread listening for incomming
-   * request joined. */
-  void close(bool wait=false);
-  /** Returns @c true if the connection is closed. */
-  bool isClosed() const;
-
-protected:
-  /** Main loop for incomming requests. */
-  static void *_main(void *ctx);
-
-protected:
-  /** A weak reference to the server instance. */
-  Server *_server;
-  /** The connection socket. */
-  int _socket;
-  /** The thread processing requests for this connection. */
-  pthread_t _thread;
 };
 
 
@@ -434,7 +464,7 @@ protected:
 };
 
 
-/** Utility function to provide a handler as a delegate.
+/** Utility class to provide a handler as a delegate.
  * @ingroup http */
 template <class T>
 class DelegateHandler: public Handler
@@ -530,9 +560,11 @@ public:
   /** Starts the server.
    * If @c wait is @c true, the call to this method will bock until the server thread stops. */
   void start(bool wait=false);
+
   /** Stops the server.
    * If @c wait is @c true, the call will block until the server thread stopped. */
   void stop(bool wait=false);
+
   /** Wait for the server thread to join. */
   void wait();
 
@@ -564,6 +596,8 @@ protected:
   void dispatch(const Request &request, Response &response);
   /** The thread waiting for incomming connections. */
   static void *_listen_main(void *ctx);
+  /** The thread handling connections. */
+  static void *_connection_main(void *ctx);
 
 protected:
   /** Port to bind to. */
@@ -576,8 +610,12 @@ protected:
   pthread_t _thread;
   /** All registered handler. */
   std::list<Handler *> _handler;
-  /** All open connections. */
-  std::set<Connection *> _connections;
+  /** The connection queue. */
+  std::list<Connection> _queue;
+  /** The queue lock. */
+  pthread_mutex_t _queue_lock;
+  /** The set of handler threads. */
+  std::set<pthread_t> _threads;
 
   /* Allow Connection to access dispatch(). */
   friend class Connection;

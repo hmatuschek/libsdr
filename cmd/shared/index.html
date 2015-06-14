@@ -13,43 +13,27 @@
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
 
   <script>
-var map;
-var connections = {};
-var qth = null;
+var map = null;
+var spots = {};
+var source = null;
 
-function onSetQTH (lon, lat) {
-  // Center map at QTH
-  map.setCenter(new google.maps.LatLng(lat, lon));
-  // Add or update the marker at QTH
-  if (null == qth) {
-    qth = new google.maps.Marker({
-      position: new google.maps.LatLng(lat, lon),
-      title: "QTH", map: map});
+function onAddSpot (callsign, lon, lat) {
+  // Check if connection exists
+  if (callsign in spots) {
+    // If connection exists, update SNR
+    connections[spots].marker.setPosition(new google.maps.LatLng(lat, lon));
   } else {
-    qth.setPosition(new google.maps.LatLng(lat, lon));
+    // otherwise, add marker at location with label callsign
+    var marker = new google.maps.Marker({
+       position: new google.maps.LatLng(lat, lon), title: callsign, map: map});
+    spots[callsign] = { marker: marker };
   }
 }
 
-function onAddConnection (callsign, lon, lat, snr) {
-  // Check if connection exists
-  if (callsign in connections) {
-    // If connection exists, update SNR
-    connections[callsign].line.setOptions(options={
-      clickable: false, draggable: false, geodesic: true,
-      path: [qth.getPosition(), new google.maps.LatLng(lat, lon)],
-      strokeColor: '#0000FF', strokeOpacity: (1.0 + Math.min(0, snr/40)), strokeWeight: 2 } );
-    connections[callsign].marker.setPosition(new google.maps.LatLng(lat, lon));
-  } else {
-    // otherwise, add marker at location with label callsign and line from QTH to location
-    var marker = new google.maps.Marker({
-       position: new google.maps.LatLng(lat, lon), title: callsign, map: map});
-    var line = new google.maps.Polyline({
-      clickable: false, draggable: false, geodesic: true,
-      path: [qth.getPosition(), new google.maps.LatLng(lat, lon)],
-      strokeColor: '#0000FF', strokeOpacity: (1.0 + Math.min(0, snr/40)), strokeWeight: 2 });
-    line.setMap(map);
-    connections[callsign] = { marker: marker, line: line };
-  }
+function updateHandler(e) {
+  var msg = JSON.parse(e.data);
+  console.log("RX: " + msg)
+  onAddSpot(msg.call, msg.lon, msg.lat);
 }
 
 function initialize() {
@@ -57,6 +41,25 @@ function initialize() {
   map = new google.maps.Map(
     document.getElementById('map-canvas'),
     {zoom:2, center: new google.maps.LatLng(0,0), streetViewControl:false});
+
+  // Request all spots
+  var xmlhttp = new XMLHttpRequest();
+  var url = "spots";
+  xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState != 4 && xmlhttp.status != 200) { return; }
+    var spots = JSON.parse(xmlhttp.responseText);
+    for (spot in spots) { onAddSpot(spot); }
+  }
+  xmlhttp.open("GET", url, true);
+  xmlhttp.send();
+
+  // Now, connect to event source for updates
+  if (!!window.EventSource) {
+    source = new window.EventSource("update");
+    source.addEventListener('message', updateHandler);
+  } else {
+    alert("Your browser does not support the EventSource -> no live update.")
+  }
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);

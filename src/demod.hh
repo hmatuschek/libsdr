@@ -241,26 +241,12 @@ protected:
   /** The actual demodulation. */
   void _process(const Buffer< std::complex<iScalar> > &in, const Buffer<oScalar> &out)
   {
-    // calc first value
-    SScalar a = (SScalar(in[0].real())*SScalar(_last_value.real()))/2
-        + (SScalar(in[0].imag())*SScalar(_last_value.imag()))/2;
-    SScalar b = (SScalar(in[0].imag())*SScalar(_last_value.real()))/2
-        - (SScalar(in[0].real())*SScalar(_last_value.imag()))/2;
-    a >>= Traits<iScalar>::shift; b >>= Traits<iScalar>::shift;
-    // update last value
-    _last_value = in[0];
-    // calc output (prob. overwriting the last value)
-    out[0] = fast_atan2<iScalar, oScalar>(a, b);
-
     // Calc remaining values
     for (size_t i=1; i<in.size(); i++) {
-      a = (SScalar(in[i].real())*SScalar(_last_value.real()))/2
-          + (SScalar(in[i].imag())*SScalar(_last_value.imag()))/2;
-      b = (SScalar(in[i].imag())*SScalar(_last_value.real()))/2
-          - (SScalar(in[i].real())*SScalar(_last_value.imag()))/2;
-      a >>= Traits<iScalar>::shift; b >>= Traits<iScalar>::shift;
-      _last_value = in[i];
-      out[i] = fast_atan2<iScalar,oScalar>(a, b);
+      oScalar phi = fast_atan2<iScalar, oScalar>(in[i].real(), in[i].imag())/2;
+      // dphi
+      out[i] = (_last_value - phi);
+      _last_value = phi;
     }
 
     // propergate result
@@ -271,8 +257,8 @@ protected:
 protected:
   /** Output rescaling. */
   int _shift;
-  /** The last input value. */
-  std::complex<iScalar> _last_value;
+  /** The last angle. */
+  oScalar _last_value;
   /** If true, in-place demodulation is poissible. */
   bool _can_overwrite;
   /** The output buffer, unused if demodulation is performed in-place. */

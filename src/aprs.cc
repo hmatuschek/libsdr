@@ -149,6 +149,14 @@ APRS::Message::Message(const AX25::Message &msg)
   }
 }
 
+APRS::Message::Message(const Message &msg)
+  : AX25::Message(msg), _hasLocation(msg._hasLocation), _latitude(msg._latitude),
+    _longitude(msg._longitude), _symbol(msg._symbol), _hasTime(msg._hasTime),
+    _time(msg._hasTime)
+{
+  // pass...
+}
+
 
 bool
 APRS::Message::_readLocation(size_t &offset) {
