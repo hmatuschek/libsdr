@@ -103,7 +103,7 @@ else(PORTAUDIO_LIBRARIES AND PORTAUDIO_INCLUDE_DIRS)
   endif (PORTAUDIO2_FOUND)
 
   include(FindPackageHandleStandardArgs)
-  find_package_handle_standard_args(PORTAUDIO DEFAULT_MSG PORTAUDIO_INCLUDE_DIRS PORTAUDIO_LIBRARIES)
+  find_package_handle_standard_args(PORTAUDIO DEFAULT_MSG PORTAUDIO_LIBRARIES PORTAUDIO_FOUND)
 
   # show the PORTAUDIO_INCLUDE_DIRS and PORTAUDIO_LIBRARIES variables only in the advanced view
   mark_as_advanced(PORTAUDIO_INCLUDE_DIRS PORTAUDIO_LIBRARIES)
