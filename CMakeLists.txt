@@ -7,6 +7,7 @@ include(LinkResources)
 
 OPTION(BUILD_EXAMPLES "Build examples" OFF)
 OPTION(BUILD_COMMANDLINETOOL "Build command line tool" ON)
+option(BUILD_DOC "Build documentation" OFF)
 
 SET(libsdr_VERSION_MAJOR "0")
 SET(libsdr_VERSION_MINOR "1")
@@ -18,6 +19,9 @@ find_package(PortAudio)
 find_package(RTLSDR)
 if(WIN32)
   find_package(PTHREAD REQUIRED)
+endif()
+if(BUILD_DOC)
+  find_package(Doxygen REQUIRED)
 endif()
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
@@ -125,6 +129,21 @@ ENDIF(BUILD_EXAMPLES)
 IF(BUILD_COMMANDLINETOOL)
  add_subdirectory(cmd)
 endif(BUILD_COMMANDLINETOOL)
+
+if(BUILD_DOC)
+  if(DOXYGEN_DOT_FOUND)
+    set(HAVE_DOT "YES")
+  else()
+    set(HAVE_DOT "NO")
+  endif()
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+  add_custom_target(doc_doxygen ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc TYPE DATA PATTERN "*.md5" EXCLUDE PATTERN "*.map" EXCLUDE)
+endif()
 
 # Source distribution packages:
 set(CPACK_PACKAGE_VERSION_MAJOR ${libsdr_VERSION_MAJOR})
