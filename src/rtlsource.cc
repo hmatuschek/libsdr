@@ -41,9 +41,11 @@ RTLSource::RTLSource(double frequency, double sample_rate, size_t device_idx)
   // Query gain factors:
   int num_gains = rtlsdr_get_tuner_gains(_device, 0);
   if (num_gains > 0) {
-    int gains[num_gains]; rtlsdr_get_tuner_gains(_device, gains);
+    int* gains = new int[num_gains];
+    rtlsdr_get_tuner_gains(_device, gains);
     _gains.reserve(num_gains);
     for (int i=0; i<num_gains; i++) { _gains.push_back(gains[i]); }
+    delete gains;
   }
 
   // Enable AGC/manual gain

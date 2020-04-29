@@ -144,7 +144,7 @@ public:
 
   void addSuite(TestSuite *suite);
 
-  void operator() ();
+  size_t operator() ();
 };
 
 

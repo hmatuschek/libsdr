@@ -140,7 +140,7 @@ TestRunner::addSuite(TestSuite *suite)
 }
 
 
-void
+size_t
 TestRunner::operator ()()
 {
   size_t tests_run = 0;
@@ -188,5 +188,7 @@ TestRunner::operator ()()
                << " (" << 100. * float((tests_run-tests_failed-tests_error))/(tests_run-tests_error)
                << "% passed)." << std::endl << "         Where "
                << tests_error << " tests produced errors." << std::endl;
+
+  return tests_failed + tests_error;
 }
 
