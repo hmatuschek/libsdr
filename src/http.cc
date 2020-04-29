@@ -2,12 +2,45 @@
 #include "exception.hh"
 #include "logger.hh"
 
+#ifndef _WIN32
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#else
+#define socklen_t int
+#undef min
+#include <algorithm>
+#endif
 #include <iomanip>
 
 using namespace sdr;
 using namespace sdr::http;
+
+
+#ifdef _WIN32
+class WinsockWrapper
+{
+public:
+    WinsockWrapper() { WSAStartup(MAKEWORD(2, 2), &wsa); }
+    ~WinsockWrapper() { WSACleanup(); }
+
+private:
+    WSADATA wsa;
+};
+
+WinsockWrapper ww;
+
+// Workarround for pthread for Windows
+#if defined(__PTW32_LEVEL) || defined(__PTW32_VERSION)
+inline bool operator< (const pthread_t& lhs, const pthread_t& rhs) { return pthread_getw32threadid_np(lhs) < pthread_getw32threadid_np(rhs); }
+inline bool operator> (const pthread_t& lhs, const pthread_t& rhs) { return rhs < lhs; }
+inline bool operator<=(const pthread_t& lhs, const pthread_t& rhs) { return !(lhs > rhs); }
+inline bool operator>=(const pthread_t& lhs, const pthread_t& rhs) { return !(lhs < rhs); }
+inline bool operator==(const pthread_t& lhs, const pthread_t& rhs) { return pthread_getw32threadid_np(lhs) == pthread_getw32threadid_np(rhs); }
+inline bool operator!=(const pthread_t& lhs, const pthread_t& rhs) { return !(lhs == rhs); }
+#endif
+#else
+#define closesocket(s) ::close(s)
+#endif
 
 
 /* ********************************************************************************************* *
@@ -120,7 +153,7 @@ Server::start(bool wait) {
   }
 
   struct sockaddr_in serv_addr;
-  bzero((char *) &serv_addr, sizeof(serv_addr));
+  memset(&serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
   serv_addr.sin_port = htons(_port);
@@ -131,7 +164,11 @@ Server::start(bool wait) {
   }
 
   int reuseaddr = 1;
+#ifdef _WIN32
+  if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuseaddr, sizeof(reuseaddr))) {
+#else
   if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr))) {
+#endif
     LogMessage msg(LOG_WARNING);
     msg << "httpd: Can not set SO_REUSEADDR flag for socket.";
     Logger::get().log(msg);
@@ -151,7 +188,7 @@ void
 Server::stop(bool wait) {
   _is_running = false;
   // Close the socket we listen on
-  ::close(_socket); _socket = -1;
+  closesocket(_socket); _socket = -1;
   // wait for server to join
   if (wait) { this->wait(); }
 }
@@ -253,7 +290,7 @@ ConnectionObj::ConnectionObj(Server *server, int cli_socket)
 }
 
 ConnectionObj::~ConnectionObj() {
-  ::close(socket); socket=-1;
+  closesocket(socket); socket=-1;
 }
 
 ConnectionObj *
@@ -309,7 +346,7 @@ Connection::close(bool wait) {
     LogMessage msg(LOG_DEBUG);
     msg << "httpd: Close connection " << socket << ".";
     Logger::get().log(msg);
-    ::close(socket);
+    closesocket(socket);
   }
 }
 
@@ -337,7 +374,11 @@ Connection::main()
 {
   int error = 0; socklen_t errorlen = sizeof(error);
   // While socket is open
+#ifdef _WIN32
+  while (0 == getsockopt(_object->socket, SOL_SOCKET, SO_ERROR, (char*)&error, &errorlen)) {
+#else
   while (0 == getsockopt(_object->socket, SOL_SOCKET, SO_ERROR, &error, &errorlen)) {
+#endif
     // Contstruct request & reponse instances
     Request request(*this);
     Response response(*this);

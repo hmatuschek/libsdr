@@ -6,8 +6,8 @@ include(InstallHeadersWithDirectory)
 include(LinkResources)
 
 OPTION(BUILD_EXAMPLES "Build examples" OFF)
-OPTION(BUILD_UNIT_TESTS "Build unit tests" OFF)
 OPTION(BUILD_COMMANDLINETOOL "Build command line tool" ON)
+option(BUILD_DOC "Build documentation" OFF)
 
 SET(libsdr_VERSION_MAJOR "0")
 SET(libsdr_VERSION_MINOR "1")
@@ -17,15 +17,24 @@ find_package(FFTW)
 find_package(FFTWSingle)
 find_package(PortAudio)
 find_package(RTLSDR)
+if(WIN32)
+  find_package(PTHREAD REQUIRED)
+endif()
+if(BUILD_DOC)
+  find_package(Doxygen REQUIRED)
+endif()
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/src)
-INCLUDE_DIRECTORIES(${PORTAUDIO_INCLUDE_DIRS})
+if(WIN32)
+  include_directories(${PTHREAD_INCLUDE_DIR})
+endif()
 INCLUDE_DIRECTORIES(${GETOPT_INCLUDE_DIRS})
 
 # Set some variables for the configuration file
 IF(FFTW_FOUND)
   set(SDR_WITH_FFTW ON)
+  include_directories(${FFTW_INCLUDES})
 ELSE(FFTW_FOUND)
   set(FFTW_LIBRARIES)
   set(FFTWSingle_LIBRARIES)
@@ -33,32 +42,52 @@ ENDIF(FFTW_FOUND)
 
 IF(PORTAUDIO_FOUND)
   set(SDR_WITH_PORTAUDIO ON)
+  include_directories(${PORTAUDIO_INCLUDE_DIRS})
 ELSE(PORTAUDIO_FOUND)
   set(PORTAUDIO_LIBRARIES)
 ENDIF(PORTAUDIO_FOUND)
 
 IF(RTLSDR_FOUND)
   set(SDR_WITH_RTLSDR ON)
-ELSE(TRLSDR_FOUND)
+  include_directories(${RTLSDR_INCLUDES})
+  option(RTLSDR_STATIC "Use static librtlsdr library" OFF)
+  if(RTLSDR_STATIC)
+    add_definitions(-Drtlsdr_STATIC)
+  endif()
+ELSE(RTLSDR_FOUND)
   set(RTLSDR_LIBRARIES)
 ENDIF(RTLSDR_FOUND)
 
 
-set(LIBS ${FFTW_LIBRARIES} ${FFTWSingle_LIBRARIES} ${PORTAUDIO_LIBRARIES} ${RTLSDR_LIBRARIES}
-         "pthread")
+set(LIBS ${FFTW_LIBRARIES} ${FFTWSingle_LIBRARIES} ${PORTAUDIO_LIBRARIES} ${RTLSDR_LIBRARIES})
+if(WIN32)
+  list(APPEND LIBS ${PTHREAD_LIBRARY})
+else()
+  list(APPEND LIBS "pthread")
+endif()
 
 # Set compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC")
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb")
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ggdb")
+if(NOT MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC")
+  set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb")
+  set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ggdb")
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4514 /wd4267")
+  add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS)
+endif()
 
 LINK_DIRECTORIES(${PROJECT_BINARY_DIR}/src)
 
-IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
-  SET(SDR_DEBUG ON)
-ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
-
+if(WIN32)
+  include (TestBigEndian)
+  TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+  if(IS_BIG_ENDIAN)
+    add_definitions(-D__BIG_ENDIAN__)
+  else()
+    add_definitions(-D__LITTLE_ENDIAN__)
+  endif()
+endif()
 
 # Create config.hh
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/config.hh.in
@@ -87,9 +116,11 @@ ENDIF(UNIX AND APPLE)
 # Add core library, and unit tests
 add_subdirectory(src)
 
-IF(BUILD_UNIT_TESTS)
+include(CTest)
+IF(BUILD_TESTING)
+ enable_testing()
  add_subdirectory(test)
-ENDIF(BUILD_UNIT_TESTS)
+ENDIF(BUILD_TESTING)
 
 IF(BUILD_EXAMPLES)
  add_subdirectory(examples)
@@ -98,6 +129,21 @@ ENDIF(BUILD_EXAMPLES)
 IF(BUILD_COMMANDLINETOOL)
  add_subdirectory(cmd)
 endif(BUILD_COMMANDLINETOOL)
+
+if(BUILD_DOC)
+  if(DOXYGEN_DOT_FOUND)
+    set(HAVE_DOT "YES")
+  else()
+    set(HAVE_DOT "NO")
+  endif()
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+  add_custom_target(doc_doxygen ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc TYPE DATA PATTERN "*.md5" EXCLUDE PATTERN "*.map" EXCLUDE)
+endif()
 
 # Source distribution packages:
 set(CPACK_PACKAGE_VERSION_MAJOR ${libsdr_VERSION_MAJOR})

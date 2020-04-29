@@ -9,6 +9,11 @@
 #include <inttypes.h>
 #include <cstdlib>
 #include <cstring>
+#ifdef _MSC_VER
+#undef min
+#undef max
+#include <algorithm>
+#endif
 
 #include "config.hh"
 #include "exception.hh"

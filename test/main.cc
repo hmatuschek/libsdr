@@ -15,7 +15,5 @@ int main(int argc, char *argv[]) {
   runner.addSuite(BufferTest::suite());
   runner.addSuite(CoreUtilsTest::suite());
 
-  runner();
-
-  return 0;
+  return (int)runner();
 }

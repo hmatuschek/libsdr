@@ -68,9 +68,17 @@
 #include <list>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#define ssize_t int
+#define uint unsigned int
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
+#else
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#endif
+#include <pthread.h>
 
 
 namespace sdr {
@@ -303,12 +311,20 @@ public:
 
   inline ssize_t write(const void *data, size_t n) const {
     if (0 == _object) { return -1; }
+#ifdef _WIN32
+    return ::send((SOCKET)_object->socket, (const char*)data, n, 0);
+#else
     return ::write(_object->socket, data, n);
+#endif
   }
 
   inline ssize_t read(void *data, size_t n) const {
     if (0 == _object) { return -1; }
+#ifdef _WIN32
+    return ::recv((SOCKET)_object->socket, (char*)data, n, 0);
+#else
     return ::read(_object->socket, data, n);
+#endif
   }
 
   bool send(const std::string &data) const;
